@@ -1,0 +1,23 @@
+[package]
+name = "prophecy_sunya"
+version = "0.1.0"
+edition = "2023_10"
+cairo-version = "2.4.0"
+
+[dependencies]
+starknet = ">=2.4.0"
+
+[[target.starknet-contract]]
+sierra = true
+casm = true
+
+[workspace]
+members = [
+    "contracts/prediction",
+    "contracts/nft",
+    "contracts/gas_tank",
+    "contracts/oracle",
+    "contracts/governance",
+    "contracts/bridge",
+    "contracts/shared",
+]
