@@ -6,6 +6,7 @@ casm/
 # Scarb cache
 .scarb/
 
+.next/
 # Node modules
 node_modules/
 .pnp

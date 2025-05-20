@@ -8,9 +8,20 @@ services:
     command: frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app/frontend
+    # No volume mounts to prevent React duplication issues
     environment:
-      - NODE_ENV=development
       - NEXT_PUBLIC_STARKNET_NETWORK=sepolia
       - NEXT_PUBLIC_PROVIDER_URL=https://starknet-sepolia.infura.io/v3/0d3e154c01d243f3be0e42d3b861bc9e
+      # Contract addresses - replace with actual deployed addresses
+      - NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS=0x1234
+      - NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x5678
+      - NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS=0x9abc
+      - NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS=0xdef0
+      - NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS=0x1234
+      - NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS=0x5678
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
