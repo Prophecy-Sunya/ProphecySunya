@@ -22,14 +22,31 @@ const CONTRACT_ADDRESSES = {
   bridge: process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || '0x5678',
 };
 
-// Contract ABIs
+// Ensure ABIs are in array format as required by starknet.js
+const ensureAbiArray = (abi: any): any[] => {
+  if (Array.isArray(abi)) return abi;
+  // If ABI is an object with a key that contains an array, use that
+  if (abi && typeof abi === 'object') {
+    // Try to find the first property that is an array
+    for (const key in abi) {
+      if (Array.isArray(abi[key])) {
+        return abi[key];
+      }
+    }
+  }
+  // Fallback to empty array if no valid ABI format found
+  console.warn('Invalid ABI format, using empty array');
+  return [];
+};
+
+// Contract ABIs - ensure they're all in array format
 const CONTRACT_ABIS = {
-  prediction: predictionAbi,
-  nft: nftAbi,
-  gasTank: gasTankAbi,
-  oracle: oracleAbi,
-  governance: governanceAbi,
-  bridge: bridgeAbi,
+  prediction: ensureAbiArray(predictionAbi),
+  nft: ensureAbiArray(nftAbi),
+  gasTank: ensureAbiArray(gasTankAbi),
+  oracle: ensureAbiArray(oracleAbi),
+  governance: ensureAbiArray(governanceAbi),
+  bridge: ensureAbiArray(bridgeAbi),
 };
 
 type ContractType = keyof typeof CONTRACT_ADDRESSES;
