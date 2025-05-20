@@ -78,10 +78,9 @@ RUN ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
 # Copy package.json and install dependencies first to leverage Docker cache
 COPY frontend/package.json /app/frontend/
 
-# Clean install with forced deduplication
+# Clean install with frozen lockfile
 RUN cd /app/frontend && \
-  yarn install --frozen-lockfile --network-timeout 600000 && \
-  yarn dedupe
+  yarn install --frozen-lockfile --network-timeout 600000
 
 # Install next globally to ensure it's in PATH
 RUN npm install -g next
@@ -99,11 +98,11 @@ RUN echo '#!/bin/bash\n\
   elif [ "$1" = "build" ]; then\n\
   scarb build\n\
   elif [ "$1" = "frontend" ]; then\n\
-  cd frontend && NODE_OPTIONS=\"--preserve-symlinks --max-old-space-size=4096\" yarn dev\n\
+  cd frontend && export NODE_OPTIONS="--preserve-symlinks --max-old-space-size=4096" && yarn dev\n\
   elif [ "$1" = "frontend:build" ]; then\n\
-  cd frontend && NODE_OPTIONS=\"--preserve-symlinks --max-old-space-size=4096\" yarn build\n\
+  cd frontend && export NODE_OPTIONS="--preserve-symlinks --max-old-space-size=4096" && yarn build\n\
   elif [ "$1" = "frontend:start" ]; then\n\
-  cd frontend && NODE_OPTIONS=\"--preserve-symlinks --max-old-space-size=4096\" yarn start\n\
+  cd frontend && export NODE_OPTIONS="--preserve-symlinks --max-old-space-size=4096" && yarn start\n\
   elif [ "$1" = "shell" ]; then\n\
   exec /bin/bash\n\
   else\n\

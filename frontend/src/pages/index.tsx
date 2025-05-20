@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { Container, Typography, Box, Grid, Button, CircularProgress } from '@mui/material';
-import { useStarknetCall, useContract, useStarknet } from '@starknet-react/core';
-import { useConnectors } from '@starknet-react/core';
+import { useContract, useAccount, useConnect } from '@starknet-react/core';
 
 // Components
 import PredictionCard from '../components/PredictionCard';
@@ -13,9 +12,8 @@ import Footer from '../components/Footer';
 
 export default function Home() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
-  const { account } = useStarknet();
-  const { connect, connectors } = useConnectors();
-  
+  const { account } = useAccount();
+  const { connect, connectors } = useConnect();
   // Placeholder for predictions data
   const predictions = [
     {

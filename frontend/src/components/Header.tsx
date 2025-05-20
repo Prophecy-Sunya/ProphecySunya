@@ -1,17 +1,18 @@
 import { FC } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, Container } from '@mui/material';
-import { useStarknet, useConnectors } from '@starknet-react/core';
+import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import Link from 'next/link';
 
 const Header: FC = () => {
-  const { account } = useStarknet();
-  const { connect, disconnect, connectors } = useConnectors();
+  const { account } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
   const handleConnect = async () => {
     try {
       const connector = connectors[0]; // Use first available connector
       if (connector) {
-        await connect(connector);
+        await connect({ connector });
       }
     } catch (error) {
       console.error('Connection error:', error);
@@ -52,7 +53,7 @@ const Header: FC = () => {
                   onClick={() => disconnect()}
                   className="ml-2"
                 >
-                  {truncateAddress(account)}
+                  {truncateAddress(account.address)}
                 </Button>
               </Box>
             ) : (
