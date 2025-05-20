@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Box, Typography, Container, Link as MuiLink } from '@mui/material';
-import Link from 'next/link';
+import NextLink from 'next/link';
 
 const Footer: FC = () => {
   return (
@@ -12,16 +12,16 @@ const Footer: FC = () => {
           </Typography>
           
           <Box className="flex space-x-6">
-            <Link href="/about" passHref>
+            <NextLink href="/about" passHref legacyBehavior>
               <MuiLink color="inherit" underline="hover">
                 About
               </MuiLink>
-            </Link>
-            <Link href="/faq" passHref>
+            </NextLink>
+            <NextLink href="/faq" passHref legacyBehavior>
               <MuiLink color="inherit" underline="hover">
                 FAQ
               </MuiLink>
-            </Link>
+            </NextLink>
             <MuiLink 
               href="https://github.com/mrarejimmyz/ProphecySunya" 
               target="_blank" 
