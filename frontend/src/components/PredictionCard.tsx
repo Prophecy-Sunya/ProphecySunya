@@ -1,16 +1,10 @@
 import { FC } from 'react';
 import { Box, Typography, Chip, Button, Card, CardContent, CardActions } from '@mui/material';
 import { formatDistance } from 'date-fns';
+import { Prediction } from '../hooks/usePredictions';
 
 interface PredictionCardProps {
-  prediction: {
-    id: string;
-    content: string;
-    category: string;
-    creator: string;
-    expirationTime: number;
-    verificationStatus: string;
-  };
+  prediction: Prediction;
 }
 
 const PredictionCard: FC<PredictionCardProps> = ({ prediction }) => {

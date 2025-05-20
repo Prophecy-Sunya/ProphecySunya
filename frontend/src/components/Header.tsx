@@ -4,7 +4,7 @@ import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import Link from 'next/link';
 
 const Header: FC = () => {
-  const { account } = useAccount();
+  const { address } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -28,24 +28,24 @@ const Header: FC = () => {
     <AppBar position="static" color="transparent" elevation={0} className="border-b border-gray-200">
       <Container maxWidth="lg">
         <Toolbar className="flex justify-between">
-          <Link href="/" passHref>
-            <Typography variant="h6" component="div" className="font-bold cursor-pointer">
+          <Link href="/" passHref legacyBehavior>
+            <Typography variant="h6" component="a" className="font-bold cursor-pointer">
               ProphecySunya
             </Typography>
           </Link>
           
           <Box className="flex space-x-4">
-            <Link href="/predictions" passHref>
-              <Button color="inherit">Predictions</Button>
+            <Link href="/predictions" passHref legacyBehavior>
+              <Button color="inherit" component="a">Predictions</Button>
             </Link>
-            <Link href="/nfts" passHref>
-              <Button color="inherit">NFTs</Button>
+            <Link href="/nfts" passHref legacyBehavior>
+              <Button color="inherit" component="a">NFTs</Button>
             </Link>
-            <Link href="/governance" passHref>
-              <Button color="inherit">Governance</Button>
+            <Link href="/governance" passHref legacyBehavior>
+              <Button color="inherit" component="a">Governance</Button>
             </Link>
             
-            {account ? (
+            {address ? (
               <Box className="flex items-center">
                 <Button 
                   variant="outlined" 
@@ -53,7 +53,7 @@ const Header: FC = () => {
                   onClick={() => disconnect()}
                   className="ml-2"
                 >
-                  {truncateAddress(account.address)}
+                  {truncateAddress(address)}
                 </Button>
               </Box>
             ) : (

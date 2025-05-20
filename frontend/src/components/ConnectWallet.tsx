@@ -7,7 +7,7 @@ const ConnectWallet: FC = () => {
 
   const handleConnect = async (connector: any) => {
     try {
-      await connect(connector);
+      await connect({ connector });
     } catch (error) {
       console.error('Connection error:', error);
     }
