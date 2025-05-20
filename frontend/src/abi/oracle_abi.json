@@ -1,0 +1,68 @@
+{
+  "oracle": [
+    {
+      "members": [
+        {
+          "name": "submit_verification",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "prediction_id",
+              "type": "felt252"
+            },
+            {
+              "name": "result",
+              "type": "felt252"
+            },
+            {
+              "name": "evidence_hash",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "verification_id",
+              "type": "felt252"
+            }
+          ]
+        },
+        {
+          "name": "challenge_verification",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "verification_id",
+              "type": "felt252"
+            },
+            {
+              "name": "challenge_evidence",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "get_verification",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "verification_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "verification",
+              "type": "Verification"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
