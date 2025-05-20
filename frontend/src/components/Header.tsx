@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, Container } from '@mui/material';
+import { FC, useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Box, Container, CircularProgress } from '@mui/material';
 import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import Link from 'next/link';
 
@@ -7,15 +7,47 @@ const Header: FC = () => {
   const { address } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
+    console.log('Header connect button clicked');
+    setIsConnecting(true);
+    
     try {
       const connector = connectors[0]; // Use first available connector
       if (connector) {
+        console.log('Using connector:', connector.id);
+        
+        // Try direct connection first if available
+        if (typeof window !== 'undefined' && window.starknet) {
+          console.log('Attempting direct wallet connection via window.starknet');
+          try {
+            await window.starknet.enable();
+            console.log('Direct wallet connection successful');
+          } catch (directError) {
+            console.error('Direct wallet connection failed:', directError);
+          }
+        }
+        
         await connect({ connector });
+        console.log('Connection successful');
+      } else {
+        console.error('No connectors available');
       }
     } catch (error) {
       console.error('Connection error:', error);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    console.log('Disconnecting wallet');
+    try {
+      await disconnect();
+      console.log('Wallet disconnected');
+    } catch (error) {
+      console.error('Disconnect error:', error);
     }
   };
 
@@ -50,7 +82,7 @@ const Header: FC = () => {
                 <Button 
                   variant="outlined" 
                   color="primary"
-                  onClick={() => disconnect()}
+                  onClick={handleDisconnect}
                   className="ml-2"
                 >
                   {truncateAddress(address)}
@@ -61,8 +93,16 @@ const Header: FC = () => {
                 variant="contained" 
                 color="primary"
                 onClick={handleConnect}
+                disabled={isConnecting}
               >
-                Connect Wallet
+                {isConnecting ? (
+                  <>
+                    <CircularProgress size={20} color="inherit" style={{ marginRight: '8px' }} />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect Wallet'
+                )}
               </Button>
             )}
           </Box>
