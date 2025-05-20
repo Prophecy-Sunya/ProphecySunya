@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import { Button, Box, Typography } from '@mui/material';
-import { useConnectors } from '@starknet-react/core';
+import { useConnect } from '@starknet-react/core';
 
 const ConnectWallet: FC = () => {
-  const { connect, connectors } = useConnectors();
+  const { connect, connectors } = useConnect();
 
   const handleConnect = async (connector: any) => {
     try {
