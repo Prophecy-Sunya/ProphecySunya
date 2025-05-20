@@ -1,6 +1,7 @@
 import { useContract as useStarknetContract } from '@starknet-react/core';
 import { Abi, Contract } from 'starknet';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useAccount } from '@starknet-react/core';
 
 // Import contract ABIs
 import predictionAbi from '../abi/prediction_abi.json';
@@ -34,16 +35,63 @@ const CONTRACT_ABIS = {
 type ContractType = keyof typeof CONTRACT_ADDRESSES;
 
 export const useContract = (contractType: ContractType) => {
+  const { address } = useAccount();
   const { contract } = useStarknetContract({
     address: CONTRACT_ADDRESSES[contractType],
     abi: CONTRACT_ABIS[contractType] as Abi,
   });
+  
+  // Mock contract functionality for contractless operation
+  const [mockContract, setMockContract] = useState<any>(null);
+  
+  useEffect(() => {
+    // Create a mock contract when no real contract is available
+    if (!contract) {
+      console.log(`Creating mock contract for ${contractType}`);
+      
+      // Simple mock contract implementation with basic functionality
+      const mock = {
+        // Mock functions that would be available on the real contract
+        create_prediction: async (args: any) => {
+          console.log('Mock contract: create_prediction called with:', args);
+          // Return a mock transaction hash
+          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
+        },
+        mint_nft: async (args: any) => {
+          console.log('Mock contract: mint_nft called with:', args);
+          // Return a mock transaction hash
+          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
+        },
+        get_predictions: async () => {
+          console.log('Mock contract: get_predictions called');
+          // Return mock predictions
+          return [
+            { id: '1', content: 'ETH will reach $10,000', category: 'Crypto', creator: address || '0x123', expiration_time: Date.now() + 86400000 * 30, verification_status: 'PENDING' },
+            { id: '2', content: 'BTC will have another halving', category: 'Crypto', creator: address || '0x456', expiration_time: Date.now() + 86400000 * 60, verification_status: 'VERIFIED_TRUE' }
+          ];
+        },
+        get_nfts: async () => {
+          console.log('Mock contract: get_nfts called');
+          // Return mock NFTs
+          return [
+            { id: '1', prediction_id: '1', owner: address || '0x123', prophet_score: 85 },
+            { id: '2', prediction_id: '2', owner: address || '0x123', prophet_score: 95 }
+          ];
+        }
+      };
+      
+      setMockContract(mock);
+    }
+  }, [contract, contractType, address]);
 
   return useMemo(() => {
+    const finalContract = contract || mockContract;
+    
     return {
-      contract,
-      isLoading: !contract,
-      error: !contract ? new Error(`Contract ${contractType} not loaded`) : null,
+      contract: finalContract,
+      isLoading: !finalContract,
+      error: !finalContract ? new Error(`Contract ${contractType} not loaded`) : null,
+      isMock: !contract && !!mockContract
     };
-  }, [contract, contractType]);
+  }, [contract, mockContract, contractType]);
 };

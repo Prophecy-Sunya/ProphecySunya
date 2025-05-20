@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useStarknet } from '@starknet-react/core';
+import { useAccount } from '@starknet-react/core';
+
+// Define the Prediction interface
+export interface Prediction {
+  id: string;
+  content: string;
+  category: string;
+  creator: string;
+  expirationTime: number;
+  verificationStatus: 'PENDING' | 'VERIFIED_TRUE' | 'VERIFIED_FALSE';
+}
 
 export const usePredictions = (userAddress?: string) => {
-  const [predictions, setPredictions] = useState([]);
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { account } = useStarknet();
+  const { address: account } = useAccount();
 
   useEffect(() => {
     const fetchPredictions = async () => {
@@ -14,7 +24,7 @@ export const usePredictions = (userAddress?: string) => {
         
         // In a production app, this would fetch from the actual contract
         // For now, we'll use mock data
-        const mockPredictions = [
+        const mockPredictions: Prediction[] = [
           {
             id: '1',
             content: 'Ethereum will reach $10,000 by the end of 2025',

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { Container, Typography, Box, Grid, Button, CircularProgress } from '@mui/material';
-import { useContract, useAccount, useConnect } from '@starknet-react/core';
+import { useAccount, useConnect } from '@starknet-react/core';
+import { Prediction } from '../hooks/usePredictions';
 
 // Components
 import PredictionCard from '../components/PredictionCard';
@@ -12,10 +13,10 @@ import Footer from '../components/Footer';
 
 export default function Home() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
-  const { account } = useAccount();
+  const { address: account } = useAccount();
   const { connect, connectors } = useConnect();
   // Placeholder for predictions data
-  const predictions = [
+  const predictions: Prediction[] = [
     {
       id: '1',
       content: 'Ethereum will reach $10,000 by the end of 2025',

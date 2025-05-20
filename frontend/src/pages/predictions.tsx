@@ -1,14 +1,14 @@
 import { FC } from 'react';
 import Head from 'next/head';
 import { Container, Typography, Box, Grid, Button } from '@mui/material';
-import { useStarknet } from '@starknet-react/core';
+import { useAccount } from '@starknet-react/core';
 import { usePredictions } from '../hooks/usePredictions';
 import PredictionCard from '../components/PredictionCard';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const PredictionsPage: FC = () => {
-  const { account } = useStarknet();
+  const { address: account } = useAccount();
   const { predictions, isLoading, error } = usePredictions();
 
   return (

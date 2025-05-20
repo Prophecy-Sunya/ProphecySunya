@@ -1,13 +1,13 @@
 import { FC } from 'react';
 import Head from 'next/head';
 import { Container, Typography, Box, Grid, Button } from '@mui/material';
-import { useStarknet } from '@starknet-react/core';
+import { useAccount } from '@starknet-react/core';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ConnectWallet from '../components/ConnectWallet';
 
 const GovernancePage: FC = () => {
-  const { account } = useStarknet();
+  const { address: account } = useAccount();
   
   // Mock governance proposals - in production this would come from contract calls
   const proposals = [
