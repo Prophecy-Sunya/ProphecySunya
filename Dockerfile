@@ -5,8 +5,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV SCARB_VERSION=2.4.0
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
+# Install dependencies with minimal layers
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     build-essential \
@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     nodejs \
     npm \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust (required for Scarb)
@@ -26,8 +27,8 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/installer.sh | bash -s -- -v ${SCARB_VERSION}
 
 # Set up Node.js environment
-RUN npm install -g n && n stable
-RUN npm install -g yarn
+RUN npm install -g n && n stable && \
+    npm install -g yarn
 
 # Create a multi-stage build to reduce image size
 FROM ubuntu:22.04
@@ -37,8 +38,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV NODE_ENV=production
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+# Install runtime dependencies with minimal layers
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     python3 \
     python3-pip \
@@ -53,17 +54,11 @@ COPY --from=builder /root/.cargo /root/.cargo
 COPY --from=builder /root/.scarb /root/.scarb
 
 # Set up Node.js environment
-RUN npm install -g n && n stable
-RUN npm install -g yarn next
+RUN npm install -g n && n stable && \
+    npm install -g yarn next
 
 # Set working directory
 WORKDIR /app
-
-# Copy project files
-COPY . .
-
-# Build the contracts
-RUN scarb build
 
 # Download starknet-devnet binary from GitHub releases
 RUN curl -L https://github.com/0xSpaceShard/starknet-devnet/releases/download/v0.4.1/starknet-devnet-linux-x86_64-v0.4.1.tar.gz -o starknet-devnet.tar.gz \
@@ -72,6 +67,16 @@ RUN curl -L https://github.com/0xSpaceShard/starknet-devnet/releases/download/v0
     && chmod +x /usr/local/bin/starknet-devnet \
     && rm starknet-devnet.tar.gz
 
+# Copy package.json and install dependencies first to leverage Docker cache
+COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* /app/frontend/
+RUN cd /app/frontend && yarn install --frozen-lockfile
+
+# Copy project files
+COPY . .
+
+# Build the contracts
+RUN scarb build
+
 # Set entrypoint script
 RUN echo '#!/bin/bash\n\
 if [ "$1" = "test" ]; then\n\
@@ -79,18 +84,18 @@ if [ "$1" = "test" ]; then\n\
 elif [ "$1" = "build" ]; then\n\
   scarb build\n\
 elif [ "$1" = "devnet" ]; then\n\
-  starknet-devnet --host 0.0.0.0 --port 5050\n\
+  exec tini -- starknet-devnet --host 0.0.0.0 --port 5050\n\
 elif [ "$1" = "frontend" ]; then\n\
-  cd frontend && yarn && yarn dev\n\
+  cd frontend && yarn dev\n\
 elif [ "$1" = "frontend:build" ]; then\n\
-  cd frontend && yarn && yarn build\n\
+  cd frontend && yarn build\n\
 elif [ "$1" = "frontend:start" ]; then\n\
-  cd frontend && yarn && yarn start\n\
+  cd frontend && yarn start\n\
 elif [ "$1" = "full-stack" ]; then\n\
   starknet-devnet --host 0.0.0.0 --port 5050 & \n\
-  cd frontend && yarn && yarn dev\n\
+  cd frontend && yarn dev\n\
 elif [ "$1" = "shell" ]; then\n\
-  /bin/bash\n\
+  exec /bin/bash\n\
 else\n\
   echo "Usage: docker run [OPTIONS] IMAGE [COMMAND]"\n\
   echo "Commands:"\n\
