@@ -1,37 +1,6 @@
 version: '3.8'
 
 services:
-  starknet-devnet:
-    image: 0xspaceshard/starknet-devnet:latest
-    ports:
-      - "5050:5050"
-    volumes:
-      - ./contracts:/app/contracts
-    environment:
-      - STARKNET_NETWORK=devnet
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5050/is_alive"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-    command: --host 0.0.0.0 --port 5050
-
-  contract-deployer:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: ["sh", "-c", "cd /app && ./deploy-contracts.sh"]
-    volumes:
-      - ./contracts:/app/contracts
-      - ./deploy-contracts.sh:/app/deploy-contracts.sh
-    environment:
-      - STARKNET_NETWORK=devnet
-      - STARKNET_DEVNET_URL=http://starknet-devnet:5050
-    depends_on:
-      starknet-devnet:
-        condition: service_healthy
-
   frontend:
     build:
       context: .
@@ -43,8 +12,5 @@ services:
       - ./frontend:/app/frontend
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_STARKNET_NETWORK=devnet
-      - NEXT_PUBLIC_DEVNET_URL=http://starknet-devnet:5050
-    depends_on:
-      starknet-devnet:
-        condition: service_healthy
+      - NEXT_PUBLIC_STARKNET_NETWORK=sepolia
+      - NEXT_PUBLIC_PROVIDER_URL=https://starknet-sepolia.infura.io/v3/0d3e154c01d243f3be0e42d3b861bc9e

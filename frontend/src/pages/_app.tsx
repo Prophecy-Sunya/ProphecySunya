@@ -1,41 +1,29 @@
-import '../styles/globals.css';
-import type { AppProps } from 'next/app';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { FC } from 'react';
 import { StarknetConfig, InjectedConnector } from '@starknet-react/core';
+import { Provider } from 'starknet';
+import type { AppProps } from 'next/app';
+import '../styles/globals.css';
 
-// Create a theme instance
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#0ea5e9',
-    },
-    secondary: {
-      main: '#8b5cf6',
-    },
-    background: {
-      default: '#f8fafc',
-    },
-  },
-  typography: {
-    fontFamily: 'Inter, sans-serif',
-  },
-});
-
-function MyApp({ Component, pageProps }: AppProps) {
+const MyApp: FC<AppProps> = ({ Component, pageProps }) => {
+  // Set up connectors for Starknet wallets
   const connectors = [
     new InjectedConnector({ options: { id: 'braavos' } }),
     new InjectedConnector({ options: { id: 'argentX' } }),
   ];
 
+  // Configure provider for Sepolia testnet
+  const provider = new Provider({
+    sequencer: {
+      network: 'sepolia-testnet',
+      baseUrl: process.env.NEXT_PUBLIC_PROVIDER_URL,
+    },
+  });
+
   return (
-    <StarknetConfig connectors={connectors} autoConnect>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Component {...pageProps} />
-      </ThemeProvider>
+    <StarknetConfig autoConnect connectors={connectors} provider={provider}>
+      <Component {...pageProps} />
     </StarknetConfig>
   );
-}
+};
 
 export default MyApp;
