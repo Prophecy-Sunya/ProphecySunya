@@ -22,21 +22,61 @@ const CONTRACT_ADDRESSES = {
   bridge: process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || '0x5678',
 };
 
-// Ensure ABIs are in array format as required by starknet.js
+// Ensure ABIs are in array format and include Cairo version metadata
 const ensureAbiArray = (abi: any): any[] => {
-  if (Array.isArray(abi)) return abi;
-  // If ABI is an object with a key that contains an array, use that
-  if (abi && typeof abi === 'object') {
+  let abiArray: any[] = [];
+  
+  // First, extract the array from the ABI object if needed
+  if (Array.isArray(abi)) {
+    abiArray = abi;
+  } else if (abi && typeof abi === 'object') {
     // Try to find the first property that is an array
     for (const key in abi) {
       if (Array.isArray(abi[key])) {
-        return abi[key];
+        abiArray = abi[key];
+        break;
       }
     }
   }
-  // Fallback to empty array if no valid ABI format found
-  console.warn('Invalid ABI format, using empty array');
-  return [];
+  
+  // If we still don't have an array, return an empty one with Cairo metadata
+  if (abiArray.length === 0) {
+    console.warn('Invalid ABI format, using empty array with Cairo metadata');
+    return [{ type: 'struct', name: 'EmptyStruct', members: [] }];
+  }
+  
+  // Check if the ABI already has Cairo version metadata
+  const hasCairoMetadata = abiArray.some(item => 
+    item.type === 'interface' || 
+    item.type === 'constructor' || 
+    (item.type === 'function' && item.stateMutability) ||
+    item.cairo_type
+  );
+  
+  // If no Cairo metadata is found, add it to make it compatible with Cairo 1
+  if (!hasCairoMetadata) {
+    console.log('Adding Cairo 1 metadata to ABI');
+    
+    // Add a version identifier that starknet.js can recognize
+    abiArray.unshift({
+      type: 'interface',
+      name: 'ProphecySunyaContract',
+      items: []
+    });
+    
+    // Ensure all function items have required Cairo 1 properties
+    abiArray = abiArray.map(item => {
+      if (item.type === 'function' || item.name) {
+        return {
+          ...item,
+          stateMutability: item.stateMutability || 'view',
+        };
+      }
+      return item;
+    });
+  }
+  
+  return abiArray;
 };
 
 // Contract ABIs - ensure they're all in array format
