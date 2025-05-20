@@ -15,8 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python3-dev \
-    nodejs \
-    npm \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,9 +24,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Install Scarb with specific Cairo version
 RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/installer.sh | bash -s -- -v ${SCARB_VERSION}
 
-# Set up Node.js environment
-RUN npm install -g n && n stable && \
-    npm install -g yarn
+# Install Node.js using NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g yarn
 
 # Create a multi-stage build to reduce image size
 FROM ubuntu:22.04
@@ -43,19 +42,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     python3 \
     python3-pip \
-    nodejs \
-    npm \
     ca-certificates \
     tini \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js using NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g yarn
+
 # Install Rust and Scarb
 COPY --from=builder /root/.cargo /root/.cargo
 COPY --from=builder /root/.scarb /root/.scarb
-
-# Set up Node.js environment
-RUN npm install -g n && n stable && \
-    npm install -g yarn next
 
 # Set working directory
 WORKDIR /app
