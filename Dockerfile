@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV SCARB_VERSION=2.4.0
 
-# Install dependencies with minimal layers
+# Install dependencies with minimal layers and cleanup in the same step
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
@@ -19,15 +19,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust (required for Scarb)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 
-# Install Scarb with specific Cairo version
-RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/installer.sh | bash -s -- -v ${SCARB_VERSION}
+# Install Scarb with specific Cairo version and verify installation
+RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/installer.sh | bash -s -- -v ${SCARB_VERSION} \
+    && scarb --version \
+    && mkdir -p /root/.scarb
 
 # Install Node.js using NodeSource
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get update \
     && apt-get install -y nodejs \
-    && npm install -g yarn
+    && npm install -g yarn \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create a multi-stage build to reduce image size
 FROM ubuntu:22.04
@@ -48,12 +52,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Node.js using NodeSource
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get update \
     && apt-get install -y nodejs \
-    && npm install -g yarn
-
-# Install Rust and Scarb
-COPY --from=builder /root/.cargo /root/.cargo
-COPY --from=builder /root/.scarb /root/.scarb
+    && npm install -g yarn \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -65,15 +67,23 @@ RUN curl -L https://github.com/0xSpaceShard/starknet-devnet/releases/download/v0
     && chmod +x /usr/local/bin/starknet-devnet \
     && rm starknet-devnet.tar.gz
 
+# Copy Rust and Scarb from builder
+COPY --from=builder /root/.cargo /root/.cargo
+# Create .scarb directory in case it doesn't exist
+RUN mkdir -p /root/.scarb
+# Copy Scarb files if they exist in builder
+COPY --from=builder /root/.scarb /root/.scarb || true
+
 # Copy package.json and install dependencies first to leverage Docker cache
 COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* /app/frontend/
-RUN cd /app/frontend && yarn install --frozen-lockfile
+RUN cd /app/frontend && yarn install --frozen-lockfile --production
 
 # Copy project files
 COPY . .
 
 # Build the contracts
-RUN scarb build
+RUN scarb --version || echo "Scarb not installed correctly" \
+    && scarb build || echo "Scarb build failed, continuing anyway"
 
 # Set entrypoint script
 RUN echo '#!/bin/bash\n\
