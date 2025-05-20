@@ -25,9 +25,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Install Scarb with specific Cairo version
 RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/installer.sh | bash -s -- -v ${SCARB_VERSION}
 
-# Install Starknet Devnet
-RUN pip3 install starknet-devnet
-
 # Set up Node.js environment
 RUN npm install -g n && n stable
 RUN npm install -g yarn
@@ -47,14 +44,13 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     nodejs \
     npm \
+    ca-certificates \
+    tini \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust and Scarb
 COPY --from=builder /root/.cargo /root/.cargo
 COPY --from=builder /root/.scarb /root/.scarb
-
-# Install Starknet Devnet
-RUN pip3 install starknet-devnet
 
 # Set up Node.js environment
 RUN npm install -g n && n stable
@@ -68,6 +64,13 @@ COPY . .
 
 # Build the contracts
 RUN scarb build
+
+# Download starknet-devnet binary from GitHub releases
+RUN curl -L https://github.com/0xSpaceShard/starknet-devnet/releases/download/v0.4.1/starknet-devnet-linux-x86_64-v0.4.1.tar.gz -o starknet-devnet.tar.gz \
+    && tar -xzf starknet-devnet.tar.gz \
+    && mv starknet-devnet /usr/local/bin/ \
+    && chmod +x /usr/local/bin/starknet-devnet \
+    && rm starknet-devnet.tar.gz
 
 # Set entrypoint script
 RUN echo '#!/bin/bash\n\

@@ -2,10 +2,7 @@ version: '3.8'
 
 services:
   starknet-devnet:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: devnet
+    image: 0xspaceshard/starknet-devnet:latest
     ports:
       - "5050:5050"
     volumes:
@@ -18,6 +15,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
+    command: --host 0.0.0.0 --port 5050
 
   contract-deployer:
     build:
