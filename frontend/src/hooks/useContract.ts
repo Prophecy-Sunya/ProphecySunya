@@ -188,11 +188,11 @@ export const useContract = (contractType: ContractType) => {
       // Expose contract methods with a consistent interface
       invoke: async (method: string, args: any) => {
         console.log(`Real contract: invoking ${method} with:`, args);
-        return starknetContract.invoke(method, args);
+        return finalContract.invoke(method, args);
       },
       call: async (method: string, args: any) => {
         console.log(`Real contract: calling ${method} with:`, args);
-        return starknetContract.call(method, args);
+        return finalContract.call(method, args);
       },
       // Add convenience methods that match the expected interface
       create_prediction: async (args: any) => {
@@ -205,17 +205,17 @@ export const useContract = (contractType: ContractType) => {
         console.log('Extracted arguments:', { content, category, expiration_time });
         
         // Use direct function call if available, otherwise fall back to invoke
-        if (starknetContract.functions && starknetContract.functions.create_prediction) {
+        if (finalContract.functions && finalContract.functions.create_prediction) {
           console.log('Using direct function call with separate arguments');
           // Pass arguments separately, not as an object
-          return starknetContract.functions.create_prediction(
+          return finalContract.functions.create_prediction(
             content,
             category,
             expiration_time
           );
         } else {
           console.log('Using invoke with array of arguments');
-          return starknetContract.invoke('create_prediction', [
+          return finalContract.invoke('create_prediction', [
             content,
             category,
             expiration_time
@@ -225,14 +225,14 @@ export const useContract = (contractType: ContractType) => {
       verify_prediction: async (args: any) => {
         console.log('Real contract: verify_prediction called with:', args);
         // Use direct function call if available, otherwise fall back to invoke
-        if (starknetContract.functions && starknetContract.functions.verify_prediction) {
-          return starknetContract.functions.verify_prediction(
+        if (finalContract.functions && finalContract.functions.verify_prediction) {
+          return finalContract.functions.verify_prediction(
             args.prediction_id,
             args.verification_result,
             args.oracle_signature || '0x0'
           );
         } else {
-          return starknetContract.invoke('verify_prediction', [
+          return finalContract.invoke('verify_prediction', [
             args.prediction_id,
             args.verification_result,
             args.oracle_signature || '0x0'
