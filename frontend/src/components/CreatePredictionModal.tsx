@@ -52,20 +52,34 @@ const CreatePredictionModal: FC<CreatePredictionModalProps> = ({ open, onClose }
       // Use the contract if available, otherwise simulate success
       if (contract) {
         try {
-          // If we have a real contract
-          if (!contract.isMock) {
+          // Check if contract has the create_prediction method
+          if (typeof contract.create_prediction === 'function') {
+            console.log('Using contract.create_prediction function');
             await contract.create_prediction({
               content,
               category,
               expiration_time: expirationTime
             });
+          } 
+          // Fallback to direct invoke if create_prediction is not available
+          else if (contract.invoke) {
+            console.log('Fallback: Using contract.invoke method');
+            await contract.invoke('create_prediction', [
+              content,
+              category,
+              expirationTime.toString()
+            ]);
+          }
+          // Last resort - try accessing _contract directly
+          else if (contract._contract) {
+            console.log('Last resort: Using contract._contract directly');
+            await contract._contract.invoke('create_prediction', [
+              content,
+              category,
+              expirationTime.toString()
+            ]);
           } else {
-            // If we're using a mock contract
-            await contract.create_prediction({
-              content,
-              category,
-              expiration_time: expirationTime
-            });
+            throw new Error('No valid contract method found for create_prediction');
           }
           console.log('Prediction created successfully');
         } catch (contractError) {
