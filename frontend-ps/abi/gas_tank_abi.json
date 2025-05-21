@@ -1,0 +1,76 @@
+{
+  "gas_tank": [
+    {
+      "members": [
+        {
+          "name": "sponsor_transaction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "user",
+              "type": "ContractAddress"
+            },
+            {
+              "name": "transaction_type",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "execute_meta_transaction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "user",
+              "type": "ContractAddress"
+            },
+            {
+              "name": "target_contract",
+              "type": "ContractAddress"
+            },
+            {
+              "name": "function_selector",
+              "type": "felt252"
+            },
+            {
+              "name": "calldata",
+              "type": "Array<felt252>"
+            },
+            {
+              "name": "signature",
+              "type": "Array<felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "type": "Array<felt252>"
+            }
+          ]
+        },
+        {
+          "name": "get_user_allowance",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "user",
+              "type": "ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "allowance",
+              "type": "felt252"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

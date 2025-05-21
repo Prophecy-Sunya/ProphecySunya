@@ -1,0 +1,96 @@
+{
+  "governance": [
+    {
+      "members": [
+        {
+          "name": "create_proposal",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "description",
+              "type": "felt252"
+            },
+            {
+              "name": "duration",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "proposal_id",
+              "type": "felt252"
+            }
+          ]
+        },
+        {
+          "name": "cast_vote",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "proposal_id",
+              "type": "felt252"
+            },
+            {
+              "name": "vote",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "execute_proposal",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "proposal_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "get_proposal",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "proposal_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "proposal",
+              "type": "Proposal"
+            }
+          ]
+        },
+        {
+          "name": "get_prophet_score",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "user",
+              "type": "ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "score",
+              "type": "felt252"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
