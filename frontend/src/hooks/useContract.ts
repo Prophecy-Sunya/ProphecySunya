@@ -93,7 +93,7 @@ type ContractType = keyof typeof CONTRACT_ADDRESSES;
 
 export const useContract = (contractType: ContractType) => {
   const { address } = useAccount();
-  const { contract } = useStarknetContract({
+  const { contract: starknetContract } = useStarknetContract({
     address: CONTRACT_ADDRESSES[contractType],
     abi: CONTRACT_ABIS[contractType] as Abi,
   });
@@ -101,31 +101,112 @@ export const useContract = (contractType: ContractType) => {
   // Mock contract functionality for contractless operation
   const [mockContract, setMockContract] = useState<any>(null);
   
+  // Create a wrapper for the real contract that exposes methods in a consistent way
+  const wrappedContract = useMemo(() => {
+    if (!starknetContract) return null;
+    
+    console.log(`Creating wrapped contract for ${contractType}`);
+    
+    return {
+      // Expose contract methods with a consistent interface
+      invoke: async (method: string, args: any) => {
+        console.log(`Real contract: invoking ${method} with:`, args);
+        return starknetContract.invoke(method, args);
+      },
+      call: async (method: string, args: any) => {
+        console.log(`Real contract: calling ${method} with:`, args);
+        return starknetContract.call(method, args);
+      },
+      // Add convenience methods that match the expected interface
+      create_prediction: async (args: any) => {
+        console.log('Real contract: create_prediction called with:', args);
+        return starknetContract.invoke('create_prediction', [
+          args.content,
+          args.category,
+          args.expiration_time
+        ]);
+      },
+      verify_prediction: async (args: any) => {
+        console.log('Real contract: verify_prediction called with:', args);
+        return starknetContract.invoke('verify_prediction', [
+          args.prediction_id,
+          args.verification_result,
+          args.oracle_signature || '0x0'
+        ]);
+      },
+      get_prediction: async (predictionId: string) => {
+        console.log('Real contract: get_prediction called with:', predictionId);
+        return starknetContract.call('get_prediction', [predictionId]);
+      },
+      get_user_predictions: async (userAddress: string) => {
+        console.log('Real contract: get_user_predictions called with:', userAddress);
+        return starknetContract.call('get_user_predictions', [userAddress || address]);
+      },
+      // Add the original contract for advanced usage
+      _contract: starknetContract
+    };
+  }, [starknetContract, contractType, address]);
+  
   useEffect(() => {
     // Create a mock contract when no real contract is available
-    if (!contract) {
+    if (!wrappedContract) {
       console.log(`Creating mock contract for ${contractType}`);
       
-      // Simple mock contract implementation with basic functionality
+      // Mock contract implementation with the same interface as the wrapped contract
       const mock = {
-        // Mock functions that would be available on the real contract
+        // Mock the invoke and call methods
+        invoke: async (method: string, args: any) => {
+          console.log(`Mock contract: invoking ${method} with:`, args);
+          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
+        },
+        call: async (method: string, args: any) => {
+          console.log(`Mock contract: calling ${method} with:`, args);
+          if (method === 'get_prediction') {
+            return {
+              id: '1',
+              content: 'ETH will reach $10,000',
+              category: 'Crypto',
+              creator: address || '0x123',
+              expiration_time: Date.now() + 86400000 * 30,
+              verification_status: 'PENDING'
+            };
+          }
+          if (method === 'get_user_predictions') {
+            return ['1', '2'];
+          }
+          return null;
+        },
+        // Mock convenience methods
         create_prediction: async (args: any) => {
           console.log('Mock contract: create_prediction called with:', args);
           // Return a mock transaction hash
           return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
         },
+        verify_prediction: async (args: any) => {
+          console.log('Mock contract: verify_prediction called with:', args);
+          // Return a mock transaction hash
+          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
+        },
+        get_prediction: async (predictionId: string) => {
+          console.log('Mock contract: get_prediction called with:', predictionId);
+          return {
+            id: predictionId,
+            content: 'ETH will reach $10,000',
+            category: 'Crypto',
+            creator: address || '0x123',
+            expiration_time: Date.now() + 86400000 * 30,
+            verification_status: 'PENDING'
+          };
+        },
+        get_user_predictions: async (userAddress: string) => {
+          console.log('Mock contract: get_user_predictions called with:', userAddress);
+          return ['1', '2'];
+        },
+        // Add mock functions for NFT operations
         mint_nft: async (args: any) => {
           console.log('Mock contract: mint_nft called with:', args);
           // Return a mock transaction hash
           return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
-        },
-        get_predictions: async () => {
-          console.log('Mock contract: get_predictions called');
-          // Return mock predictions
-          return [
-            { id: '1', content: 'ETH will reach $10,000', category: 'Crypto', creator: address || '0x123', expiration_time: Date.now() + 86400000 * 30, verification_status: 'PENDING' },
-            { id: '2', content: 'BTC will have another halving', category: 'Crypto', creator: address || '0x456', expiration_time: Date.now() + 86400000 * 60, verification_status: 'VERIFIED_TRUE' }
-          ];
         },
         get_nfts: async () => {
           console.log('Mock contract: get_nfts called');
@@ -139,16 +220,16 @@ export const useContract = (contractType: ContractType) => {
       
       setMockContract(mock);
     }
-  }, [contract, contractType, address]);
+  }, [wrappedContract, contractType, address]);
 
   return useMemo(() => {
-    const finalContract = contract || mockContract;
+    const finalContract = wrappedContract || mockContract;
     
     return {
       contract: finalContract,
       isLoading: !finalContract,
       error: !finalContract ? new Error(`Contract ${contractType} not loaded`) : null,
-      isMock: !contract && !!mockContract
+      isMock: !wrappedContract && !!mockContract
     };
-  }, [contract, mockContract, contractType]);
+  }, [wrappedContract, mockContract, contractType]);
 };
