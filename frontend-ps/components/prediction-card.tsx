@@ -1,16 +1,14 @@
-'use client';
+"use client";
 
-import { timeUntilExpiration } from '@/utils/helpers';
+import { timeUntilExpiration } from "@/utils/helpers";
 import {
   Card,
   CardHeader,
   CardBody,
   CardFooter,
-  Avatar,
   Button,
   Chip,
-} from '@heroui/react';
-import { useState } from 'react';
+} from "@heroui/react";
 
 interface PredictionCardProps {
   id: string;
@@ -22,14 +20,12 @@ interface PredictionCardProps {
 }
 
 const PredictionCard = ({
-  id,
   content,
   category,
   creator,
   expirationTime,
   verificationStatus,
 }: PredictionCardProps) => {
-  const [isFollowed, setIsFollowed] = useState(false);
   return (
     <Card className="max-w-[400px]" isHoverable={true}>
       <CardHeader className="justify-between">
@@ -40,7 +36,7 @@ const PredictionCard = ({
             </Chip>
             <Chip
               color={
-                verificationStatus === 'VERIFIED_TRUE' ? 'success' : 'warning'
+                verificationStatus === "VERIFIED_TRUE" ? "success" : "warning"
               }
               variant="faded"
             >
@@ -63,7 +59,7 @@ const PredictionCard = ({
         <Button variant="bordered" fullWidth={true}>
           View Details
         </Button>
-        {verificationStatus === 'VERIFIED_TRUE' ? (
+        {verificationStatus === "VERIFIED_TRUE" ? (
           <Button variant="bordered" color="secondary" fullWidth={true}>
             Mint NFT
           </Button>

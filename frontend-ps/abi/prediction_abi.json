@@ -1,0 +1,88 @@
+{
+  "prediction": [
+    {
+      "members": [
+        {
+          "name": "create_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "content",
+              "type": "felt252"
+            },
+            {
+              "name": "category",
+              "type": "felt252"
+            },
+            {
+              "name": "expiration_time",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "prediction_id",
+              "type": "felt252"
+            }
+          ]
+        },
+        {
+          "name": "verify_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "prediction_id",
+              "type": "felt252"
+            },
+            {
+              "name": "verification_result",
+              "type": "felt252"
+            },
+            {
+              "name": "oracle_signature",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "get_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "prediction_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "prediction",
+              "type": "Prediction"
+            }
+          ]
+        },
+        {
+          "name": "get_user_predictions",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "user",
+              "type": "ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "prediction_ids",
+              "type": "Array<felt252>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

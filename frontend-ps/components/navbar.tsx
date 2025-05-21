@@ -1,41 +1,35 @@
+import { Input } from "@heroui/input";
+import { Kbd } from "@heroui/kbd";
+import { Link } from "@heroui/link";
 import {
   Navbar as HeroUINavbar,
-  NavbarContent,
-  NavbarMenu,
-  NavbarMenuToggle,
   NavbarBrand,
+  NavbarContent,
   NavbarItem,
+  NavbarMenu,
   NavbarMenuItem,
-} from '@heroui/navbar';
-import { Button } from '@heroui/button';
-import { Kbd } from '@heroui/kbd';
-import { Link } from '@heroui/link';
-import { Input } from '@heroui/input';
-import { link as linkStyles } from '@heroui/theme';
-import NextLink from 'next/link';
-import clsx from 'clsx';
+  NavbarMenuToggle,
+} from "@heroui/navbar";
+import { link as linkStyles } from "@heroui/theme";
+import clsx from "clsx";
+import NextLink from "next/link";
 
-import { siteConfig } from '@/config/site';
-import { ThemeSwitch } from '@/components/theme-switch';
-import {
-  TwitterIcon,
-  GithubIcon,
-  DiscordIcon,
-  HeartFilledIcon,
-  SearchIcon,
-  Logo,
-} from '@/components/icons';
+import { SearchIcon } from "@/components/icons";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { siteConfig } from "@/config/site";
+import WalletButton from "./wallet-button";
+import ConnectStarknetWallet from "./connect-starknet-wallet-button";
 
 export const Navbar = () => {
   const searchInput = (
     <Input
       aria-label="Search"
       classNames={{
-        inputWrapper: 'bg-default-100',
-        input: 'text-sm',
+        inputWrapper: "bg-default-100",
+        input: "text-sm",
       }}
       endContent={
-        <Kbd className="hidden lg:inline-block" keys={['command']}>
+        <Kbd className="hidden lg:inline-block" keys={["command"]}>
           K
         </Kbd>
       }
@@ -62,8 +56,8 @@ export const Navbar = () => {
             <NavbarItem key={item.href}>
               <NextLink
                 className={clsx(
-                  linkStyles({ color: 'foreground' }),
-                  'data-[active=true]:text-primary data-[active=true]:font-medium'
+                  linkStyles({ color: "foreground" }),
+                  "data-[active=true]:text-primary data-[active=true]:font-medium",
                 )}
                 color="foreground"
                 href={item.href}
@@ -104,13 +98,9 @@ export const Navbar = () => {
             Sponsor
           </Button>
         </NavbarItem> */}
-        {/* Connect Wallet Button: TODO: need to done the logic */}
-        <Button
-          className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
-          radius="full"
-        >
-          Connect Wallet
-        </Button>
+
+        {/* Wallet Button */}
+        <ConnectStarknetWallet />
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
@@ -129,10 +119,10 @@ export const Navbar = () => {
               <Link
                 color={
                   index === 2
-                    ? 'primary'
+                    ? "primary"
                     : index === siteConfig.navMenuItems.length - 1
-                      ? 'danger'
-                      : 'foreground'
+                      ? "danger"
+                      : "foreground"
                 }
                 href="#"
                 size="lg"
