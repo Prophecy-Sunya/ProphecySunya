@@ -218,11 +218,9 @@ const PredictionCard: FC<PredictionCardProps> = ({ prediction }) => {
         onClose={closeNotification}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        {notification && (
-          <Alert onClose={closeNotification} severity={notification.type} sx={{ width: '100%' }}>
-            {notification.message}
-          </Alert>
-        )}
+        <Alert onClose={closeNotification} severity={notification?.type || 'info'} sx={{ width: '100%' }}>
+          {notification?.message || ''}
+        </Alert>
       </Snackbar>
     </Card>
   );

@@ -2,6 +2,12 @@ import { FC, useEffect, useState } from 'react';
 import { Button, Box, Typography, CircularProgress, Alert } from '@mui/material';
 import { useConnect } from '@starknet-react/core';
 
+declare global {
+  interface Window {
+    starknet?: any;
+  }
+}
+
 const ConnectWallet: FC = () => {
   const { connect, connectors } = useConnect();
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
