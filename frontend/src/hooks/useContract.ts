@@ -61,7 +61,9 @@ const ensureAbiArray = (abi: any): any[] => {
           flattenedAbi.push({
             ...member,
             type: member.type || 'function',
-            stateMutability: member.stateMutability || 'view'
+            stateMutability: member.stateMutability || 'view',
+            // Ensure name is explicitly set for all functions
+            name: member.name
           });
         }
       }
@@ -71,6 +73,9 @@ const ensureAbiArray = (abi: any): any[] => {
       flattenedAbi.push(item);
     }
   }
+  
+  // Debug log to verify function names are correctly extracted
+  console.log('Extracted function names:', flattenedAbi.map(item => item.name).join(', '));
   
   // If we have no functions after flattening, add a placeholder
   if (flattenedAbi.length === 0) {
@@ -164,23 +169,52 @@ export const useContract = (contractType: ContractType) => {
           args.expiration_time.toString()
         ];
         console.log('Calling with args:', callArgs);
-        return starknetContract.invoke('create_prediction', callArgs);
+        
+        // Use direct function call if available, otherwise fall back to invoke
+        if (starknetContract.functions && starknetContract.functions.create_prediction) {
+          return starknetContract.functions.create_prediction(
+            args.content,
+            args.category,
+            args.expiration_time.toString()
+          );
+        } else {
+          return starknetContract.invoke('create_prediction', callArgs);
+        }
       },
       verify_prediction: async (args: any) => {
         console.log('Real contract: verify_prediction called with:', args);
-        return starknetContract.invoke('verify_prediction', [
-          args.prediction_id,
-          args.verification_result,
-          args.oracle_signature || '0x0'
-        ]);
+        // Use direct function call if available, otherwise fall back to invoke
+        if (starknetContract.functions && starknetContract.functions.verify_prediction) {
+          return starknetContract.functions.verify_prediction(
+            args.prediction_id,
+            args.verification_result,
+            args.oracle_signature || '0x0'
+          );
+        } else {
+          return starknetContract.invoke('verify_prediction', [
+            args.prediction_id,
+            args.verification_result,
+            args.oracle_signature || '0x0'
+          ]);
+        }
       },
       get_prediction: async (predictionId: string) => {
         console.log('Real contract: get_prediction called with:', predictionId);
-        return starknetContract.call('get_prediction', [predictionId]);
+        // Use direct function call if available, otherwise fall back to call
+        if (starknetContract.functions && starknetContract.functions.get_prediction) {
+          return starknetContract.functions.get_prediction(predictionId);
+        } else {
+          return starknetContract.call('get_prediction', [predictionId]);
+        }
       },
       get_user_predictions: async (userAddress: string) => {
         console.log('Real contract: get_user_predictions called with:', userAddress);
-        return starknetContract.call('get_user_predictions', [userAddress || address]);
+        // Use direct function call if available, otherwise fall back to call
+        if (starknetContract.functions && starknetContract.functions.get_user_predictions) {
+          return starknetContract.functions.get_user_predictions(userAddress || address);
+        } else {
+          return starknetContract.call('get_user_predictions', [userAddress || address]);
+        }
       },
       // Add the original contract for advanced usage
       _contract: starknetContract
