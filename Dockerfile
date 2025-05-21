@@ -88,6 +88,13 @@ RUN npm install -g next
 # Copy project files (excluding node_modules via .dockerignore)
 COPY . .
 
+# Ensure all shell scripts have Unix line endings
+RUN apt-get update && apt-get install -y dos2unix && \
+    find /app -name "*.sh" -type f -exec dos2unix {} \; && \
+    chmod +x /app/*.sh && \
+    apt-get remove -y dos2unix && \
+    rm -rf /var/lib/apt/lists/*
+
 # Build the contracts
 RUN scarb --version && scarb build || echo "Scarb build failed, continuing anyway"
 
