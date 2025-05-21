@@ -242,23 +242,23 @@ export const useContract = (contractType: ContractType) => {
       get_prediction: async (predictionId: string) => {
         console.log('Real contract: get_prediction called with:', predictionId);
         // Use direct function call if available, otherwise fall back to call
-        if (starknetContract.functions && starknetContract.functions.get_prediction) {
-          return starknetContract.functions.get_prediction(predictionId);
+        if (finalContract.functions && finalContract.functions.get_prediction) {
+          return finalContract.functions.get_prediction(predictionId);
         } else {
-          return starknetContract.call('get_prediction', [predictionId]);
+          return finalContract.call('get_prediction', [predictionId]);
         }
       },
       get_user_predictions: async (userAddress: string) => {
         console.log('Real contract: get_user_predictions called with:', userAddress);
         // Use direct function call if available, otherwise fall back to call
-        if (starknetContract.functions && starknetContract.functions.get_user_predictions) {
-          return starknetContract.functions.get_user_predictions(userAddress || address);
+        if (finalContract.functions && finalContract.functions.get_user_predictions) {
+          return finalContract.functions.get_user_predictions(userAddress || address);
         } else {
-          return starknetContract.call('get_user_predictions', [userAddress || address]);
+          return finalContract.call('get_user_predictions', [userAddress || address]);
         }
       },
       // Add the original contract for advanced usage
-      _contract: starknetContract
+      _contract: finalContract
     };
   }, [contract, mockContract, contractType]);
 };
