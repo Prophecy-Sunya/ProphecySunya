@@ -1,69 +1,83 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: 'ProphecySunya',
+  description: 'Decentralized Prediction Markets on Starknet',
   navItems: [
     {
-      label: "Home",
-      href: "/",
+      label: 'Predictions',
+      href: '/predictions',
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: 'NFTs',
+      href: '/nfts',
     },
     {
-      label: "Pricing",
-      href: "/pricing",
-    },
-    {
-      label: "Blog",
-      href: "/blog",
-    },
-    {
-      label: "About",
-      href: "/about",
+      label: 'Governance',
+      href: '/governance',
     },
   ],
   navMenuItems: [
     {
-      label: "Profile",
-      href: "/profile",
+      label: 'Profile',
+      href: '/profile',
     },
     {
-      label: "Dashboard",
-      href: "/dashboard",
+      label: 'Dashboard',
+      href: '/dashboard',
     },
     {
-      label: "Projects",
-      href: "/projects",
+      label: 'Projects',
+      href: '/projects',
     },
     {
-      label: "Team",
-      href: "/team",
+      label: 'Team',
+      href: '/team',
     },
     {
-      label: "Calendar",
-      href: "/calendar",
+      label: 'Calendar',
+      href: '/calendar',
     },
     {
-      label: "Settings",
-      href: "/settings",
+      label: 'Settings',
+      href: '/settings',
     },
     {
-      label: "Help & Feedback",
-      href: "/help-feedback",
+      label: 'Help & Feedback',
+      href: '/help-feedback',
     },
     {
-      label: "Logout",
-      href: "/logout",
+      label: 'Logout',
+      href: '/logout',
+    },
+  ],
+  footerNavItems: [
+    {
+      label: 'Privacy Policy',
+      href: '/privacy-policy',
+    },
+    {
+      label: 'Terms of Service',
+      href: '/terms-of-service',
+    },
+    {
+      label: 'Contact Us',
+      href: '/contact-us',
+    },
+    {
+      label: 'About Us',
+      href: '/about-us',
+    },
+    {
+      label: 'FAQ',
+      href: '/faq',
     },
   ],
   links: {
-    github: "https://github.com/heroui-inc/heroui",
-    twitter: "https://twitter.com/hero_ui",
-    docs: "https://heroui.com",
-    discord: "https://discord.gg/9b6yyZKmH4",
-    sponsor: "https://patreon.com/jrgarciadev",
+    github: 'https://github.com/heroui-inc/heroui',
+    twitter: 'https://twitter.com/hero_ui',
+    docs: 'https://heroui.com',
+    discord: 'https://discord.gg/9b6yyZKmH4',
+    sponsor: 'https://patreon.com/jrgarciadev',
   },
 };
