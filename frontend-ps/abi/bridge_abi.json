@@ -1,0 +1,84 @@
+{
+  "bridge": [
+    {
+      "members": [
+        {
+          "name": "bridge_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "source_chain",
+              "type": "felt252"
+            },
+            {
+              "name": "source_id",
+              "type": "felt252"
+            },
+            {
+              "name": "content",
+              "type": "felt252"
+            },
+            {
+              "name": "category",
+              "type": "felt252"
+            },
+            {
+              "name": "expiration_time",
+              "type": "felt252"
+            },
+            {
+              "name": "proof",
+              "type": "Array<felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "bridged_id",
+              "type": "felt252"
+            }
+          ]
+        },
+        {
+          "name": "verify_bridged_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "bridged_id",
+              "type": "felt252"
+            },
+            {
+              "name": "verification_result",
+              "type": "felt252"
+            },
+            {
+              "name": "proof",
+              "type": "Array<felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "get_bridged_prediction",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "bridged_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "bridged_prediction",
+              "type": "BridgedPrediction"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

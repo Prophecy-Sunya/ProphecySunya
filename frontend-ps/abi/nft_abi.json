@@ -1,0 +1,104 @@
+{
+  "nft": [
+    {
+      "members": [
+        {
+          "name": "mint",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "to",
+              "type": "ContractAddress"
+            },
+            {
+              "name": "prediction_id",
+              "type": "felt252"
+            },
+            {
+              "name": "metadata_uri",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "token_id",
+              "type": "felt252"
+            }
+          ]
+        },
+        {
+          "name": "transfer",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "felt252"
+            },
+            {
+              "name": "to",
+              "type": "ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "update_prophet_score",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "felt252"
+            },
+            {
+              "name": "new_score",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "success",
+              "type": "bool"
+            }
+          ]
+        },
+        {
+          "name": "get_token",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "token",
+              "type": "Token"
+            }
+          ]
+        },
+        {
+          "name": "get_owner_tokens",
+          "type": "function",
+          "inputs": [
+            {
+              "name": "owner",
+              "type": "ContractAddress"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "token_ids",
+              "type": "Array<felt252>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
