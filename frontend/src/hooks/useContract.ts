@@ -185,10 +185,80 @@ export const useContract = (contractType: ContractType) => {
     const finalContract = contract || mockContract;
     
     return {
-      contract: finalContract,
-      isLoading: !finalContract,
-      error: !finalContract ? new Error(`Contract ${contractType} not loaded`) : null,
-      isMock: !contract && !!mockContract
+      // Expose contract methods with a consistent interface
+      invoke: async (method: string, args: any) => {
+        console.log(`Real contract: invoking ${method} with:`, args);
+        return starknetContract.invoke(method, args);
+      },
+      call: async (method: string, args: any) => {
+        console.log(`Real contract: calling ${method} with:`, args);
+        return starknetContract.call(method, args);
+      },
+      // Add convenience methods that match the expected interface
+      create_prediction: async (args: any) => {
+        console.log('Real contract: create_prediction called with:', args);
+        // Extract arguments from the args object
+        const content = args.content;
+        const category = args.category;
+        const expiration_time = args.expiration_time.toString();
+        
+        console.log('Extracted arguments:', { content, category, expiration_time });
+        
+        // Use direct function call if available, otherwise fall back to invoke
+        if (starknetContract.functions && starknetContract.functions.create_prediction) {
+          console.log('Using direct function call with separate arguments');
+          // Pass arguments separately, not as an object
+          return starknetContract.functions.create_prediction(
+            content,
+            category,
+            expiration_time
+          );
+        } else {
+          console.log('Using invoke with array of arguments');
+          return starknetContract.invoke('create_prediction', [
+            content,
+            category,
+            expiration_time
+          ]);
+        }
+      },
+      verify_prediction: async (args: any) => {
+        console.log('Real contract: verify_prediction called with:', args);
+        // Use direct function call if available, otherwise fall back to invoke
+        if (starknetContract.functions && starknetContract.functions.verify_prediction) {
+          return starknetContract.functions.verify_prediction(
+            args.prediction_id,
+            args.verification_result,
+            args.oracle_signature || '0x0'
+          );
+        } else {
+          return starknetContract.invoke('verify_prediction', [
+            args.prediction_id,
+            args.verification_result,
+            args.oracle_signature || '0x0'
+          ]);
+        }
+      },
+      get_prediction: async (predictionId: string) => {
+        console.log('Real contract: get_prediction called with:', predictionId);
+        // Use direct function call if available, otherwise fall back to call
+        if (starknetContract.functions && starknetContract.functions.get_prediction) {
+          return starknetContract.functions.get_prediction(predictionId);
+        } else {
+          return starknetContract.call('get_prediction', [predictionId]);
+        }
+      },
+      get_user_predictions: async (userAddress: string) => {
+        console.log('Real contract: get_user_predictions called with:', userAddress);
+        // Use direct function call if available, otherwise fall back to call
+        if (starknetContract.functions && starknetContract.functions.get_user_predictions) {
+          return starknetContract.functions.get_user_predictions(userAddress || address);
+        } else {
+          return starknetContract.call('get_user_predictions', [userAddress || address]);
+        }
+      },
+      // Add the original contract for advanced usage
+      _contract: starknetContract
     };
   }, [contract, mockContract, contractType]);
 };
