@@ -22,9 +22,11 @@ const CONTRACT_ADDRESSES = {
   bridge: process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || '0x5678',
 };
 
-// Ensure ABIs are in array format and include Cairo version metadata
+// Ensure ABIs are in array format, flattened, and include Cairo version metadata
 const ensureAbiArray = (abi: any): any[] => {
   let abiArray: any[] = [];
+  
+  console.log('Original ABI structure:', JSON.stringify(abi).substring(0, 200) + '...');
   
   // First, extract the array from the ABI object if needed
   if (Array.isArray(abi)) {
@@ -42,11 +44,42 @@ const ensureAbiArray = (abi: any): any[] => {
   // If we still don't have an array, return an empty one with Cairo metadata
   if (abiArray.length === 0) {
     console.warn('Invalid ABI format, using empty array with Cairo metadata');
-    return [{ type: 'struct', name: 'EmptyStruct', members: [] }];
+    return [{ type: 'function', name: 'placeholder', inputs: [], outputs: [], stateMutability: 'view' }];
+  }
+  
+  // Flatten the ABI structure if needed (extract functions from members array)
+  let flattenedAbi: any[] = [];
+  
+  for (const item of abiArray) {
+    // If the item has a members array, extract those as top-level functions
+    if (item.members && Array.isArray(item.members)) {
+      console.log('Flattening members array with', item.members.length, 'functions');
+      
+      // Add each member as a top-level function
+      for (const member of item.members) {
+        if (member.type === 'function' || member.name) {
+          flattenedAbi.push({
+            ...member,
+            type: member.type || 'function',
+            stateMutability: member.stateMutability || 'view'
+          });
+        }
+      }
+    } 
+    // Otherwise add the item directly
+    else {
+      flattenedAbi.push(item);
+    }
+  }
+  
+  // If we have no functions after flattening, add a placeholder
+  if (flattenedAbi.length === 0) {
+    console.warn('No functions found after flattening, using placeholder');
+    flattenedAbi = [{ type: 'function', name: 'placeholder', inputs: [], outputs: [], stateMutability: 'view' }];
   }
   
   // Check if the ABI already has Cairo version metadata
-  const hasCairoMetadata = abiArray.some(item => 
+  const hasCairoMetadata = flattenedAbi.some(item => 
     item.type === 'interface' || 
     item.type === 'constructor' || 
     (item.type === 'function' && item.stateMutability) ||
@@ -58,14 +91,14 @@ const ensureAbiArray = (abi: any): any[] => {
     console.log('Adding Cairo 1 metadata to ABI');
     
     // Add a version identifier that starknet.js can recognize
-    abiArray.unshift({
+    flattenedAbi.unshift({
       type: 'interface',
       name: 'ProphecySunyaContract',
       items: []
     });
     
     // Ensure all function items have required Cairo 1 properties
-    abiArray = abiArray.map(item => {
+    flattenedAbi = flattenedAbi.map(item => {
       if (item.type === 'function' || item.name) {
         return {
           ...item,
@@ -76,7 +109,10 @@ const ensureAbiArray = (abi: any): any[] => {
     });
   }
   
-  return abiArray;
+  console.log('Flattened ABI contains', flattenedAbi.length, 'items');
+  console.log('Function names:', flattenedAbi.filter(item => item.type === 'function').map(item => item.name).join(', '));
+  
+  return flattenedAbi;
 };
 
 // Contract ABIs - ensure they're all in array format
