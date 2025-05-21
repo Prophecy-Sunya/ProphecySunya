@@ -1,6 +1,38 @@
 version: '3.8'
 
 services:
+  # Starknet Devnet for local development
+  starknet-devnet:
+    image: shardlabs/starknet-devnet:latest
+    ports:
+      - "5050:5050"
+    command: --host 0.0.0.0 --port 5050 --seed 42
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/is_alive"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    volumes:
+      - starknet-devnet-data:/data
+
+  # Contract deployment service
+  contract-deployer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: shell
+    entrypoint: ["/bin/bash", "/app/deploy-contracts.sh"]
+    volumes:
+      - contract-addresses:/app/contract-addresses
+    depends_on:
+      starknet-devnet:
+        condition: service_healthy
+    environment:
+      - STARKNET_NETWORK=devnet
+      - STARKNET_DEVNET_URL=http://starknet-devnet:5050
+
+  # Frontend application
   frontend:
     build:
       context: .
@@ -10,18 +42,22 @@ services:
       - "3000:3000"
     # No volume mounts to prevent React duplication issues
     environment:
-      - NEXT_PUBLIC_STARKNET_NETWORK=sepolia
-      - NEXT_PUBLIC_PROVIDER_URL=https://starknet-sepolia.infura.io/v3/0d3e154c01d243f3be0e42d3b861bc9e
-      # Contract addresses - replace with actual deployed addresses
-      - NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS=0x1234
-      - NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=0x5678
-      - NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS=0x9abc
-      - NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS=0xdef0
-      - NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS=0x1234
-      - NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS=0x5678
+      - NEXT_PUBLIC_STARKNET_NETWORK=devnet
+      - NEXT_PUBLIC_PROVIDER_URL=http://starknet-devnet:5050
+      # Contract addresses will be injected at runtime from the contract-addresses volume
+    volumes:
+      - contract-addresses:/app/contract-addresses:ro
+    depends_on:
+      contract-deployer:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    entrypoint: ["/bin/bash", "-c", "source /app/load-contract-addresses.sh && exec /entrypoint.sh frontend"]
+
+volumes:
+  starknet-devnet-data:
+  contract-addresses:
