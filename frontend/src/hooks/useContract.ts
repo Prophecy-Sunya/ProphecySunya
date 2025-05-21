@@ -1,6 +1,6 @@
 import { useContract as useStarknetContract } from '@starknet-react/core';
 import { Abi, Contract } from 'starknet';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useAccount } from '@starknet-react/core';
 
 // Import contract ABIs
@@ -12,14 +12,14 @@ import governanceAbi from '../abi/governance_abi.json';
 import bridgeAbi from '../abi/bridge_abi.json';
 
 // Contract addresses for Sepolia testnet
-const CONTRACT_ADDRESSES = {
+const CONTRACT_ADDRESSES: Record<string, `0x${string}`> = {
   // These would be the actual deployed contract addresses on Sepolia
-  prediction: process.env.NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS || '0x1234', 
-  nft: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x5678',
-  gasTank: process.env.NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS || '0x9abc',
-  oracle: process.env.NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS || '0xdef0',
-  governance: process.env.NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS || '0x1234',
-  bridge: process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || '0x5678',
+  prediction: (process.env.NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS || '0x1234') as `0x${string}`, 
+  nft: (process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x5678') as `0x${string}`,
+  gasTank: (process.env.NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS || '0x9abc') as `0x${string}`,
+  oracle: (process.env.NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS || '0xdef0') as `0x${string}`,
+  governance: (process.env.NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS || '0x1234') as `0x${string}`,
+  bridge: (process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || '0x5678') as `0x${string}`,
 };
 
 // Ensure ABIs are in array format, flattened, and include Cairo version metadata
@@ -134,9 +134,6 @@ export const useContract = (contractType: ContractType) => {
     abi: CONTRACT_ABIS[contractType] as Abi,
   });
   
-  // Mock contract functionality for contractless operation
-  const [mockContract, setMockContract] = useState<any>(null);
-  
   // Create a wrapper for the real contract that exposes methods in a consistent way
   const wrappedContract = useMemo(() => {
     if (!starknetContract) return null;
@@ -190,112 +187,10 @@ export const useContract = (contractType: ContractType) => {
     };
   }, [starknetContract, contractType, address]);
   
-  // Remove all mock contract logic
-  useEffect(() => {
-    // No mock contract creation
-  }, []);
-  
-  return useMemo(() => {
-    // Only use the real contract, no mock fallback
-    return {
-      contract: wrappedContract,
-      isLoading: !wrappedContract,
-      error: !wrappedContract ? new Error(`Contract ${contractType} not loaded`) : null,
-      isMock: false
-    };
-  }, [wrappedContract, contractType]);
-      get_user_predictions: async (userAddress: string) => {
-        console.log('Real contract: get_user_predictions called with:', userAddress);
-        return starknetContract.call('get_user_predictions', [userAddress || address]);
-      },
-      // Add the original contract for advanced usage
-      _contract: starknetContract
-    };
-  }, [starknetContract, contractType, address]);
-  
-  useEffect(() => {
-    // Create a mock contract when no real contract is available
-    if (!wrappedContract) {
-      console.log(`Creating mock contract for ${contractType}`);
-      
-      // Mock contract implementation with the same interface as the wrapped contract
-      const mock = {
-        // Mock the invoke and call methods
-        invoke: async (method: string, args: any) => {
-          console.log(`Mock contract: invoking ${method} with:`, args);
-          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
-        },
-        call: async (method: string, args: any) => {
-          console.log(`Mock contract: calling ${method} with:`, args);
-          if (method === 'get_prediction') {
-            return {
-              id: '1',
-              content: 'ETH will reach $10,000',
-              category: 'Crypto',
-              creator: address || '0x123',
-              expiration_time: Date.now() + 86400000 * 30,
-              verification_status: 'PENDING'
-            };
-          }
-          if (method === 'get_user_predictions') {
-            return ['1', '2'];
-          }
-          return null;
-        },
-        // Mock convenience methods
-        create_prediction: async (args: any) => {
-          console.log('Mock contract: create_prediction called with:', args);
-          // Return a mock transaction hash
-          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
-        },
-        verify_prediction: async (args: any) => {
-          console.log('Mock contract: verify_prediction called with:', args);
-          // Return a mock transaction hash
-          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
-        },
-        get_prediction: async (predictionId: string) => {
-          console.log('Mock contract: get_prediction called with:', predictionId);
-          return {
-            id: predictionId,
-            content: 'ETH will reach $10,000',
-            category: 'Crypto',
-            creator: address || '0x123',
-            expiration_time: Date.now() + 86400000 * 30,
-            verification_status: 'PENDING'
-          };
-        },
-        get_user_predictions: async (userAddress: string) => {
-          console.log('Mock contract: get_user_predictions called with:', userAddress);
-          return ['1', '2'];
-        },
-        // Add mock functions for NFT operations
-        mint_nft: async (args: any) => {
-          console.log('Mock contract: mint_nft called with:', args);
-          // Return a mock transaction hash
-          return { transaction_hash: `0x${Math.random().toString(16).substring(2, 42)}` };
-        },
-        get_nfts: async () => {
-          console.log('Mock contract: get_nfts called');
-          // Return mock NFTs
-          return [
-            { id: '1', prediction_id: '1', owner: address || '0x123', prophet_score: 85 },
-            { id: '2', prediction_id: '2', owner: address || '0x123', prophet_score: 95 }
-          ];
-        }
-      };
-      
-      setMockContract(mock);
-    }
-  }, [wrappedContract, contractType, address]);
-
-  return useMemo(() => {
-    const finalContract = wrappedContract || mockContract;
-    
-    return {
-      contract: finalContract,
-      isLoading: !finalContract,
-      error: !finalContract ? new Error(`Contract ${contractType} not loaded`) : null,
-      isMock: !wrappedContract && !!mockContract
-    };
-  }, [wrappedContract, mockContract, contractType]);
+  return {
+    contract: wrappedContract,
+    isLoading: !wrappedContract,
+    error: !wrappedContract ? new Error(`Contract ${contractType} not loaded`) : null,
+    isMock: false
+  };
 };
