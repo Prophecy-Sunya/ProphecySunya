@@ -143,6 +143,10 @@ export const useContract = (contractType: ContractType) => {
     
     console.log(`Creating wrapped contract for ${contractType}`);
     
+    // Log the actual ABI being used to help debug
+    console.log('Contract ABI structure:', JSON.stringify(starknetContract.abi).substring(0, 500) + '...');
+    console.log('Available functions:', Object.keys(starknetContract.functions || {}).join(', '));
+    
     return {
       // Expose contract methods with a consistent interface
       invoke: async (method: string, args: any) => {
@@ -156,11 +160,14 @@ export const useContract = (contractType: ContractType) => {
       // Add convenience methods that match the expected interface
       create_prediction: async (args: any) => {
         console.log('Real contract: create_prediction called with:', args);
-        return starknetContract.invoke('create_prediction', [
+        // Convert args to array format for Starknet.js
+        const callArgs = [
           args.content,
           args.category,
-          args.expiration_time
-        ]);
+          args.expiration_time.toString()
+        ];
+        console.log('Calling with args:', callArgs);
+        return starknetContract.invoke('create_prediction', callArgs);
       },
       verify_prediction: async (args: any) => {
         console.log('Real contract: verify_prediction called with:', args);
@@ -174,6 +181,29 @@ export const useContract = (contractType: ContractType) => {
         console.log('Real contract: get_prediction called with:', predictionId);
         return starknetContract.call('get_prediction', [predictionId]);
       },
+      get_user_predictions: async (userAddress: string) => {
+        console.log('Real contract: get_user_predictions called with:', userAddress);
+        return starknetContract.call('get_user_predictions', [userAddress || address]);
+      },
+      // Add the original contract for advanced usage
+      _contract: starknetContract
+    };
+  }, [starknetContract, contractType, address]);
+  
+  // Remove all mock contract logic
+  useEffect(() => {
+    // No mock contract creation
+  }, []);
+  
+  return useMemo(() => {
+    // Only use the real contract, no mock fallback
+    return {
+      contract: wrappedContract,
+      isLoading: !wrappedContract,
+      error: !wrappedContract ? new Error(`Contract ${contractType} not loaded`) : null,
+      isMock: false
+    };
+  }, [wrappedContract, contractType]);
       get_user_predictions: async (userAddress: string) => {
         console.log('Real contract: get_user_predictions called with:', userAddress);
         return starknetContract.call('get_user_predictions', [userAddress || address]);
