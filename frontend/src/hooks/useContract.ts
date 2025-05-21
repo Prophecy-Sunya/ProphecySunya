@@ -202,23 +202,29 @@ export const useContract = (contractType: ContractType) => {
       // Add convenience methods that match the expected interface
       create_prediction: async (args: any) => {
         console.log('Real contract: create_prediction called with:', args);
-        // Convert args to array format for Starknet.js
-        const callArgs = [
-          args.content,
-          args.category,
-          args.expiration_time.toString()
-        ];
-        console.log('Calling with args:', callArgs);
+        // Extract arguments from the args object
+        const content = args.content;
+        const category = args.category;
+        const expiration_time = args.expiration_time.toString();
+        
+        console.log('Extracted arguments:', { content, category, expiration_time });
         
         // Use direct function call if available, otherwise fall back to invoke
         if (starknetContract.functions && starknetContract.functions.create_prediction) {
+          console.log('Using direct function call with separate arguments');
+          // Pass arguments separately, not as an object
           return starknetContract.functions.create_prediction(
-            args.content,
-            args.category,
-            args.expiration_time.toString()
+            content,
+            category,
+            expiration_time
           );
         } else {
-          return starknetContract.invoke('create_prediction', callArgs);
+          console.log('Using invoke with array of arguments');
+          return starknetContract.invoke('create_prediction', [
+            content,
+            category,
+            expiration_time
+          ]);
         }
       },
       verify_prediction: async (args: any) => {
