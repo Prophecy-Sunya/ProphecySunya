@@ -79,9 +79,49 @@ const ensureAbiArray = (abi: any): any[] => {
   return abiArray;
 };
 
+// Directly define the prediction ABI to ensure it's in the correct format
+const PREDICTION_ABI = [
+  {
+    type: 'function',
+    name: 'create_prediction',
+    inputs: [
+      { name: 'content', type: 'felt252' },
+      { name: 'category', type: 'felt252' },
+      { name: 'expiration_time', type: 'felt252' }
+    ],
+    outputs: [{ name: 'prediction_id', type: 'felt252' }],
+    stateMutability: 'external'
+  },
+  {
+    type: 'function',
+    name: 'verify_prediction',
+    inputs: [
+      { name: 'prediction_id', type: 'felt252' },
+      { name: 'verification_result', type: 'felt252' },
+      { name: 'oracle_signature', type: 'felt252' }
+    ],
+    outputs: [{ name: 'success', type: 'bool' }],
+    stateMutability: 'external'
+  },
+  {
+    type: 'function',
+    name: 'get_prediction',
+    inputs: [{ name: 'prediction_id', type: 'felt252' }],
+    outputs: [{ name: 'prediction', type: 'Prediction' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'get_user_predictions',
+    inputs: [{ name: 'user', type: 'ContractAddress' }],
+    outputs: [{ name: 'prediction_ids', type: 'Array<felt252>' }],
+    stateMutability: 'view'
+  }
+];
+
 // Contract ABIs - ensure they're all in array format
 const CONTRACT_ABIS = {
-  prediction: ensureAbiArray(predictionAbi),
+  prediction: PREDICTION_ABI, // Use the directly defined ABI
   nft: ensureAbiArray(nftAbi),
   gasTank: ensureAbiArray(gasTankAbi),
   oracle: ensureAbiArray(oracleAbi),
