@@ -3,10 +3,10 @@ version: '3.8'
 services:
   # Starknet Devnet for local development
   starknet-devnet:
-    image: shardlabs/starknet-devnet:latest
+    image: starknetfoundation/starknet-dev:latest
     ports:
       - "5050:5050"
-    command: --host 0.0.0.0 --port 5050 --seed 42
+    command: starknet-devnet --host 0.0.0.0 --port 5050 --seed 42
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/is_alive"]
       interval: 10s
