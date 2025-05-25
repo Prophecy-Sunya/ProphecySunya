@@ -9,6 +9,7 @@ mod contracts {
 
 // Export shared types and interfaces
 mod shared {
-    use shared::types;
-    use shared::interfaces;
+    // Use the full path to the shared module in the workspace
+    use prophecy_sunya::contracts::shared::src::types;
+    use prophecy_sunya::contracts::shared::src::interfaces;
 }
