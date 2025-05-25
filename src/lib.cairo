@@ -9,7 +9,7 @@ mod contracts {
 
 // Export shared types and interfaces
 mod shared {
-    // Use the full path to the shared module in the workspace
-    use prophecy_sunya::contracts::shared::src::types;
-    use prophecy_sunya::contracts::shared::src::interfaces;
+    // Import from the shared package directly now that lib.cairo exists
+    use shared::types;
+    use shared::interfaces;
 }
