@@ -7,5 +7,5 @@ mod contracts {
     // when the contract structure is finalized
 }
 
-// Export shared types and interfaces
-use contracts::shared;
+// Remove the shared module import for now to simplify
+// We'll add proper imports once the basic compilation works

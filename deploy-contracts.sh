@@ -26,33 +26,57 @@ BRIDGE_CLASS_HASH=$(scarb cairo-run --available-gas 2000000 --script scripts/get
 echo "Deploying contracts to Devnet..."
 
 # Deploy Prediction Contract
-echo "Deploying Prediction Contract..."
-PREDICTION_ADDRESS=$(starknet deploy --contract-address-salt 123 --class-hash ${PREDICTION_CLASS_HASH:-0x123456} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring Prediction Contract..."
+PREDICTION_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${PREDICTION_CLASS_HASH:-0x123456} target/dev/prophecy_sunya_prediction.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "Prediction Contract declared with class hash: $PREDICTION_CLASS_HASH"
+
+echo "Deploying Prediction Contract instance..."
+PREDICTION_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 123 $PREDICTION_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Prediction Contract deployed at: $PREDICTION_ADDRESS"
 
 # Deploy NFT Contract
-echo "Deploying NFT Contract..."
-NFT_ADDRESS=$(starknet deploy --contract-address-salt 456 --class-hash ${NFT_CLASS_HASH:-0x234567} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring NFT Contract..."
+NFT_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${NFT_CLASS_HASH:-0x234567} target/dev/prophecy_sunya_nft.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "NFT Contract declared with class hash: $NFT_CLASS_HASH"
+
+echo "Deploying NFT Contract instance..."
+NFT_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 456 $NFT_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "NFT Contract deployed at: $NFT_ADDRESS"
 
 # Deploy Gas Tank Contract
-echo "Deploying Gas Tank Contract..."
-GAS_TANK_ADDRESS=$(starknet deploy --contract-address-salt 789 --class-hash ${GAS_TANK_CLASS_HASH:-0x345678} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring Gas Tank Contract..."
+GAS_TANK_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${GAS_TANK_CLASS_HASH:-0x345678} target/dev/prophecy_sunya_gas_tank.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "Gas Tank Contract declared with class hash: $GAS_TANK_CLASS_HASH"
+
+echo "Deploying Gas Tank Contract instance..."
+GAS_TANK_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 789 $GAS_TANK_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Gas Tank Contract deployed at: $GAS_TANK_ADDRESS"
 
 # Deploy Oracle Contract
-echo "Deploying Oracle Contract..."
-ORACLE_ADDRESS=$(starknet deploy --contract-address-salt 101112 --class-hash ${ORACLE_CLASS_HASH:-0x456789} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring Oracle Contract..."
+ORACLE_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${ORACLE_CLASS_HASH:-0x456789} target/dev/prophecy_sunya_oracle.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "Oracle Contract declared with class hash: $ORACLE_CLASS_HASH"
+
+echo "Deploying Oracle Contract instance..."
+ORACLE_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 101112 $ORACLE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Oracle Contract deployed at: $ORACLE_ADDRESS"
 
 # Deploy Governance Contract
-echo "Deploying Governance Contract..."
-GOVERNANCE_ADDRESS=$(starknet deploy --contract-address-salt 131415 --class-hash ${GOVERNANCE_CLASS_HASH:-0x567890} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring Governance Contract..."
+GOVERNANCE_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${GOVERNANCE_CLASS_HASH:-0x567890} target/dev/prophecy_sunya_governance.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "Governance Contract declared with class hash: $GOVERNANCE_CLASS_HASH"
+
+echo "Deploying Governance Contract instance..."
+GOVERNANCE_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 131415 $GOVERNANCE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Governance Contract deployed at: $GOVERNANCE_ADDRESS"
 
 # Deploy Bridge Contract
-echo "Deploying Bridge Contract..."
-BRIDGE_ADDRESS=$(starknet deploy --contract-address-salt 161718 --class-hash ${BRIDGE_CLASS_HASH:-0x678901} --network devnet --url http://starknet-devnet:5050)
+echo "Declaring Bridge Contract..."
+BRIDGE_CLASS_HASH=$(starkli declare --account devnet-account --rpc http://starknet-devnet:5050 --casm-hash ${BRIDGE_CLASS_HASH:-0x678901} target/dev/prophecy_sunya_bridge.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+echo "Bridge Contract declared with class hash: $BRIDGE_CLASS_HASH"
+
+echo "Deploying Bridge Contract instance..."
+BRIDGE_ADDRESS=$(starkli deploy --account devnet-account --rpc http://starknet-devnet:5050 --salt 161718 $BRIDGE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Bridge Contract deployed at: $BRIDGE_ADDRESS"
 
 # Write contract addresses to a file that can be mounted to the frontend
