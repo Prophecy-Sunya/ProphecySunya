@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     command: shell
-    entrypoint: ["/bin/bash", "/app/deploy-contracts.sh"]
+    entrypoint: ["/bin/bash", "/app/deploy-starkli.sh"]
     volumes:
       - contract-addresses:/app/contract-addresses
     depends_on:
