@@ -27,7 +27,10 @@ const PredictionCard = ({
   verificationStatus,
 }: PredictionCardProps) => {
   return (
-    <Card className="max-w-[400px]" isHoverable={true}>
+    <Card
+      className="max-w-[400px]  bg-default/30 backdrop-blur-md  transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+      isHoverable={true}
+    >
       <CardHeader className="justify-between">
         <div className="flex gap-5">
           <div className="flex  gap-2 items-start justify-center">
