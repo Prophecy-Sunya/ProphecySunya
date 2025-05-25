@@ -72,5 +72,5 @@ fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 # Expose port for Next.js
 EXPOSE 3000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["sh", "-c", "cd /app && ./entrypoint.sh"]
 CMD ["shell"]
