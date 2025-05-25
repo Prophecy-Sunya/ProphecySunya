@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 # Wait for Starknet Devnet to be fully ready
 echo "Waiting for Starknet Devnet to be ready..."
 until $(curl --output /dev/null --silent --fail http://starknet-devnet:5050/is_alive); do
@@ -8,6 +7,10 @@ until $(curl --output /dev/null --silent --fail http://starknet-devnet:5050/is_a
     sleep 2
 done
 echo "Starknet Devnet is ready!"
+
+# Set environment variable for Starknet gateway
+export STARKNET_NETWORK=alpha-goerli
+export STARKNET_GATEWAY_URL=http://starknet-devnet:5050
 
 # Build the contracts
 echo "Building contracts..."

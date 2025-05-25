@@ -5,7 +5,18 @@
 mod contracts {
     // This is a placeholder that will be populated with actual exports
     // when the contract structure is finalized
+    
+    // Import the shared module
+    pub mod shared {
+        // Re-export from the shared package
+        use shared::types;
+        use shared::interfaces;
+    }
 }
 
-// Remove the shared module import for now to simplify
-// We'll add proper imports once the basic compilation works
+// Export shared types and interfaces
+mod shared {
+    // Import from the shared package directly now that lib.cairo exists
+    use shared::types;
+    use shared::interfaces;
+}

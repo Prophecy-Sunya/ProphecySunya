@@ -53,11 +53,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
   python3 \
   python3-pip \
+  python3-dev \
   ca-certificates \
   tini \
   wget \
   git \
+  build-essential \
+  pkg-config \
+  libssl-dev \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Starkli for modern StarkNet deployment
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Starkli with explicit version and verify installation
+RUN mkdir -p /tmp/starkli && \
+    cd /tmp/starkli && \
+    curl -L https://github.com/xJonathanLEI/starkli/releases/download/v0.1.9/starkli-x86_64-unknown-linux-gnu.tar.gz -o starkli.tar.gz && \
+    tar -xzf starkli.tar.gz && \
+    mkdir -p /usr/local/bin && \
+    cp starkli /usr/local/bin/ && \
+    chmod +x /usr/local/bin/starkli && \
+    rm -rf /tmp/starkli && \
+    starkli --version
 
 # Install Node.js from NodeSource repository
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
