@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# VERSION MARKER: v4.0 - Using direct account address for deployment
-echo "=== RUNNING UPDATED DEPLOY-STARKLI.SH VERSION 4.0 ==="
-echo "This version uses a direct account address for deployment"
+# VERSION MARKER: v5.0 - Creating proper starkli account config file
+echo "=== RUNNING UPDATED DEPLOY-STARKLI.SH VERSION 5.0 ==="
+echo "This version creates a proper starkli account config file"
 echo "Script path: $0"
 echo "Current directory: $(pwd)"
 
@@ -22,11 +22,45 @@ PRIVATE_KEY=$(echo $ACCOUNT_JSON | jq -r '.[0].private_key')
 echo "Using account address: $ACCOUNT_ADDRESS"
 echo "Using private key: ${PRIVATE_KEY:0:10}... (truncated for security)"
 
-# Export as environment variables for starkli
-export STARKNET_ACCOUNT=$ACCOUNT_ADDRESS
-export STARKNET_PRIVATE_KEY=$PRIVATE_KEY
+# Create starkli directories
+mkdir -p ~/.starkli-wallets/deployer
+mkdir -p ~/.starkli
 
-echo "Account environment variables set successfully"
+# Create keystore file
+echo "$PRIVATE_KEY" > ~/.starkli-wallets/deployer/key.json
+chmod 600 ~/.starkli-wallets/deployer/key.json
+
+# Create starkli account config file
+cat > ~/.starkli/account.json << EOL
+{
+  "version": 1,
+  "variant": {
+    "type": "open_zeppelin",
+    "version": 1,
+    "public_key": "0x0",
+    "address": "$ACCOUNT_ADDRESS"
+  }
+}
+EOL
+
+# Create starknet keystore config
+mkdir -p ~/.starknet_accounts
+cat > ~/.starknet_accounts/starknet_open_zeppelin.json << EOL
+{
+  "alpha-goerli": {},
+  "alpha-mainnet": {},
+  "devnet": {
+    "$ACCOUNT_ADDRESS": {
+      "private_key": "$PRIVATE_KEY",
+      "public_key": "0x0",
+      "address": "$ACCOUNT_ADDRESS",
+      "deployed": true
+    }
+  }
+}
+EOL
+
+echo "Starkli account configuration created successfully"
 
 # Wait for Starknet Devnet to be fully ready
 echo "Waiting for Starknet Devnet to be ready..."
@@ -54,56 +88,56 @@ echo "Deploying contracts to Devnet..."
 
 # Deploy Prediction Contract
 echo "Declaring Prediction Contract..."
-PREDICTION_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${PREDICTION_CLASS_HASH:-0x123456} target/dev/prophecy_sunya_prediction.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+PREDICTION_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${PREDICTION_CLASS_HASH:-0x123456} target/dev/prophecy_sunya_prediction.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "Prediction Contract declared with class hash: $PREDICTION_CLASS_HASH"
 
 echo "Deploying Prediction Contract instance..."
-PREDICTION_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 123 $PREDICTION_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+PREDICTION_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 123 $PREDICTION_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Prediction Contract deployed at: $PREDICTION_ADDRESS"
 
 # Deploy NFT Contract
 echo "Declaring NFT Contract..."
-NFT_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${NFT_CLASS_HASH:-0x234567} target/dev/prophecy_sunya_nft.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+NFT_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${NFT_CLASS_HASH:-0x234567} target/dev/prophecy_sunya_nft.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "NFT Contract declared with class hash: $NFT_CLASS_HASH"
 
 echo "Deploying NFT Contract instance..."
-NFT_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 456 $NFT_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+NFT_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 456 $NFT_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "NFT Contract deployed at: $NFT_ADDRESS"
 
 # Deploy Gas Tank Contract
 echo "Declaring Gas Tank Contract..."
-GAS_TANK_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${GAS_TANK_CLASS_HASH:-0x345678} target/dev/prophecy_sunya_gas_tank.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+GAS_TANK_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${GAS_TANK_CLASS_HASH:-0x345678} target/dev/prophecy_sunya_gas_tank.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "Gas Tank Contract declared with class hash: $GAS_TANK_CLASS_HASH"
 
 echo "Deploying Gas Tank Contract instance..."
-GAS_TANK_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 789 $GAS_TANK_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+GAS_TANK_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 789 $GAS_TANK_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Gas Tank Contract deployed at: $GAS_TANK_ADDRESS"
 
 # Deploy Oracle Contract
 echo "Declaring Oracle Contract..."
-ORACLE_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${ORACLE_CLASS_HASH:-0x456789} target/dev/prophecy_sunya_oracle.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+ORACLE_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${ORACLE_CLASS_HASH:-0x456789} target/dev/prophecy_sunya_oracle.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "Oracle Contract declared with class hash: $ORACLE_CLASS_HASH"
 
 echo "Deploying Oracle Contract instance..."
-ORACLE_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 101112 $ORACLE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+ORACLE_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 101112 $ORACLE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Oracle Contract deployed at: $ORACLE_ADDRESS"
 
 # Deploy Governance Contract
 echo "Declaring Governance Contract..."
-GOVERNANCE_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${GOVERNANCE_CLASS_HASH:-0x567890} target/dev/prophecy_sunya_governance.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+GOVERNANCE_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${GOVERNANCE_CLASS_HASH:-0x567890} target/dev/prophecy_sunya_governance.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "Governance Contract declared with class hash: $GOVERNANCE_CLASS_HASH"
 
 echo "Deploying Governance Contract instance..."
-GOVERNANCE_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 131415 $GOVERNANCE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+GOVERNANCE_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 131415 $GOVERNANCE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Governance Contract deployed at: $GOVERNANCE_ADDRESS"
 
 # Deploy Bridge Contract
 echo "Declaring Bridge Contract..."
-BRIDGE_CLASS_HASH=$(starkli declare --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --casm-hash ${BRIDGE_CLASS_HASH:-0x678901} target/dev/prophecy_sunya_bridge.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
+BRIDGE_CLASS_HASH=$(starkli declare --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --casm-hash ${BRIDGE_CLASS_HASH:-0x678901} target/dev/prophecy_sunya_bridge.sierra.json | grep -oP 'class hash: \K0x[0-9a-fA-F]+')
 echo "Bridge Contract declared with class hash: $BRIDGE_CLASS_HASH"
 
 echo "Deploying Bridge Contract instance..."
-BRIDGE_ADDRESS=$(starkli deploy --account $ACCOUNT_ADDRESS --private-key $PRIVATE_KEY --rpc http://starknet-devnet:5050 --salt 161718 $BRIDGE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
+BRIDGE_ADDRESS=$(starkli deploy --account ~/.starkli/account.json --rpc http://starknet-devnet:5050 --salt 161718 $BRIDGE_CLASS_HASH | grep -oP 'Contract address: \K0x[0-9a-fA-F]+')
 echo "Bridge Contract deployed at: $BRIDGE_ADDRESS"
 
 # Write contract addresses to a file that can be mounted to the frontend
