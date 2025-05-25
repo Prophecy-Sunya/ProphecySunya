@@ -1,20 +1,14 @@
 FROM node:20-alpine
-
 WORKDIR /app
-
 # Install dependencies
-RUN apk add --no-cache python3 make g++ git
-
+RUN apk add --no-cache python3 make g++ git bash
 # Copy package files
 COPY scripts/package.json scripts/tsconfig.json /app/scripts/
-
 # Install script dependencies
 WORKDIR /app/scripts
 RUN npm install
-
 # Copy the deployment script
 COPY scripts/deploy.ts /app/scripts/
-
 # Set the entrypoint
 WORKDIR /app
 CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]

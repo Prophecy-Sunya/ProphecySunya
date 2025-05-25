@@ -18,8 +18,7 @@ services:
   contract-deployer:
     build:
       context: .
-      dockerfile: Dockerfile.unified
-    command: deploy
+      dockerfile: Dockerfile.deployer
     volumes:
       - ./deployments:/app/deployments
     depends_on:
