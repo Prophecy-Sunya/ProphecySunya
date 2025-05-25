@@ -1,0 +1,76 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+RUN apk add --no-cache python3 make g++ git curl bash
+
+# Set environment variables
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Copy package files for scripts
+COPY scripts/package.json scripts/tsconfig.json /app/scripts/
+
+# Install script dependencies
+WORKDIR /app/scripts
+RUN npm install
+
+# Copy frontend package.json and install dependencies
+COPY frontend/package.json /app/frontend/
+WORKDIR /app/frontend
+RUN npm install
+
+# Copy the rest of the application
+COPY . /app/
+
+# Create a script to load contract addresses
+RUN echo '#!/bin/bash\n\
+if [ -f /app/deployments/devnet_latest.json ]; then\n\
+  echo "Loading contract addresses from deployments/devnet_latest.json"\n\
+  export NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"prediction\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  export NEXT_PUBLIC_NFT_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"nft\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  export NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"gasTank\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  export NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"oracle\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  export NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"governance\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  export NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS=$(cat /app/deployments/devnet_latest.json | grep -o "\"bridge\":{[^}]*\"address\":\"[^\"]*\"" | grep -o "\"address\":\"[^\"]*\"" | cut -d"\"" -f4)\n\
+  echo "Contract addresses loaded:"\n\
+  echo "PREDICTION: $NEXT_PUBLIC_PREDICTION_CONTRACT_ADDRESS"\n\
+  echo "NFT: $NEXT_PUBLIC_NFT_CONTRACT_ADDRESS"\n\
+  echo "GAS_TANK: $NEXT_PUBLIC_GAS_TANK_CONTRACT_ADDRESS"\n\
+  echo "ORACLE: $NEXT_PUBLIC_ORACLE_CONTRACT_ADDRESS"\n\
+  echo "GOVERNANCE: $NEXT_PUBLIC_GOVERNANCE_CONTRACT_ADDRESS"\n\
+  echo "BRIDGE: $NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS"\n\
+else\n\
+  echo "Warning: No contract deployments found at /app/deployments/devnet_latest.json"\n\
+fi' > /app/load-contract-addresses.sh && chmod +x /app/load-contract-addresses.sh
+
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+if [ "$1" = "deploy" ]; then\n\
+  cd /app/scripts && npm run deploy\n\
+elif [ "$1" = "frontend" ]; then\n\
+  source /app/load-contract-addresses.sh\n\
+  cd /app/frontend && npm run dev\n\
+elif [ "$1" = "frontend:build" ]; then\n\
+  source /app/load-contract-addresses.sh\n\
+  cd /app/frontend && npm run build\n\
+elif [ "$1" = "frontend:start" ]; then\n\
+  source /app/load-contract-addresses.sh\n\
+  cd /app/frontend && npm run start\n\
+elif [ "$1" = "shell" ]; then\n\
+  exec /bin/bash\n\
+else\n\
+  echo "Usage: docker run [OPTIONS] IMAGE [COMMAND]"\n\
+  echo "Commands:"\n\
+  echo "  deploy         - Deploy contracts using TypeScript deployment script"\n\
+  echo "  frontend       - Start Next.js development server"\n\
+  echo "  frontend:build - Build Next.js production bundle"\n\
+  echo "  frontend:start - Start Next.js production server"\n\
+  echo "  shell          - Start a bash shell"\n\
+fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Expose port for Next.js
+EXPOSE 3000
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["shell"]
