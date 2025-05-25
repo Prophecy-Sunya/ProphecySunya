@@ -64,7 +64,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Starknet CLI and dependencies (using older version that supports devnet)
-RUN pip3 install starknet-py==0.12.0 cairo-lang==0.10.3 --no-cache-dir
+RUN pip3 install cairo-lang==0.10.3 --no-cache-dir
 # Install starknet CLI from cairo-lang
 RUN ln -s /usr/local/bin/starknet-compile /usr/local/bin/starknet || echo "Starknet CLI symlink already exists"
 
