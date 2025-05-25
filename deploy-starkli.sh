@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# VERSION MARKER: v2.0 - Updated script with RPC-only parameters (no account or network)
+echo "=== RUNNING UPDATED DEPLOY-STARKLI.SH VERSION 2.0 ==="
+echo "This version uses only --rpc parameter without --account or --network"
+echo "Script path: $0"
+echo "Current directory: $(pwd)"
+echo "Script content verification:"
+grep -n "network\|account" $0 || echo "No network or account parameters found in script"
+
 # Wait for Starknet Devnet to be fully ready
 echo "Waiting for Starknet Devnet to be ready..."
 until $(curl --output /dev/null --silent --fail http://starknet-devnet:5050/is_alive); do
