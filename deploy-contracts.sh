@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 # Wait for Starknet Devnet to be fully ready
 echo "Waiting for Starknet Devnet to be ready..."
 until $(curl --output /dev/null --silent --fail http://starknet-devnet:5050/is_alive); do
@@ -8,6 +7,10 @@ until $(curl --output /dev/null --silent --fail http://starknet-devnet:5050/is_a
     sleep 2
 done
 echo "Starknet Devnet is ready!"
+
+# Set environment variable for Starknet gateway
+export STARKNET_NETWORK=alpha-goerli
+export STARKNET_GATEWAY_URL=http://starknet-devnet:5050
 
 # Build the contracts
 echo "Building contracts..."
@@ -27,32 +30,32 @@ echo "Deploying contracts to Devnet..."
 
 # Deploy Prediction Contract
 echo "Deploying Prediction Contract..."
-PREDICTION_ADDRESS=$(starknet deploy --salt 123 --class_hash ${PREDICTION_CLASS_HASH:-0x123456} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+PREDICTION_ADDRESS=$(starknet deploy --salt 123 --class_hash ${PREDICTION_CLASS_HASH:-0x123456} --network alpha-goerli)
 echo "Prediction Contract deployed at: $PREDICTION_ADDRESS"
 
 # Deploy NFT Contract
 echo "Deploying NFT Contract..."
-NFT_ADDRESS=$(starknet deploy --salt 456 --class_hash ${NFT_CLASS_HASH:-0x234567} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+NFT_ADDRESS=$(starknet deploy --salt 456 --class_hash ${NFT_CLASS_HASH:-0x234567} --network alpha-goerli)
 echo "NFT Contract deployed at: $NFT_ADDRESS"
 
 # Deploy Gas Tank Contract
 echo "Deploying Gas Tank Contract..."
-GAS_TANK_ADDRESS=$(starknet deploy --salt 789 --class_hash ${GAS_TANK_CLASS_HASH:-0x345678} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+GAS_TANK_ADDRESS=$(starknet deploy --salt 789 --class_hash ${GAS_TANK_CLASS_HASH:-0x345678} --network alpha-goerli)
 echo "Gas Tank Contract deployed at: $GAS_TANK_ADDRESS"
 
 # Deploy Oracle Contract
 echo "Deploying Oracle Contract..."
-ORACLE_ADDRESS=$(starknet deploy --salt 101112 --class_hash ${ORACLE_CLASS_HASH:-0x456789} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+ORACLE_ADDRESS=$(starknet deploy --salt 101112 --class_hash ${ORACLE_CLASS_HASH:-0x456789} --network alpha-goerli)
 echo "Oracle Contract deployed at: $ORACLE_ADDRESS"
 
 # Deploy Governance Contract
 echo "Deploying Governance Contract..."
-GOVERNANCE_ADDRESS=$(starknet deploy --salt 131415 --class_hash ${GOVERNANCE_CLASS_HASH:-0x567890} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+GOVERNANCE_ADDRESS=$(starknet deploy --salt 131415 --class_hash ${GOVERNANCE_CLASS_HASH:-0x567890} --network alpha-goerli)
 echo "Governance Contract deployed at: $GOVERNANCE_ADDRESS"
 
 # Deploy Bridge Contract
 echo "Deploying Bridge Contract..."
-BRIDGE_ADDRESS=$(starknet deploy --salt 161718 --class_hash ${BRIDGE_CLASS_HASH:-0x678901} --network alpha-goerli --gateway-url http://starknet-devnet:5050)
+BRIDGE_ADDRESS=$(starknet deploy --salt 161718 --class_hash ${BRIDGE_CLASS_HASH:-0x678901} --network alpha-goerli)
 echo "Bridge Contract deployed at: $BRIDGE_ADDRESS"
 
 # Write contract addresses to a file that can be mounted to the frontend
