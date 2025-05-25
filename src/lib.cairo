@@ -8,4 +8,7 @@ mod contracts {
 }
 
 // Export shared types and interfaces
-use contracts::shared;
+mod shared {
+    use shared::types;
+    use shared::interfaces;
+}
