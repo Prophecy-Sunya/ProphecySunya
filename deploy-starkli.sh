@@ -38,7 +38,12 @@ cat > ~/.starkli/account.json << EOL
     "type": "open_zeppelin",
     "version": 1,
     "public_key": "0x0",
-    "address": "$ACCOUNT_ADDRESS"
+    "address": "$ACCOUNT_ADDRESS",
+    "deployment": {
+      "status": "deployed",
+      "class_hash": "0x0",
+      "salt": "0x0"
+    }
   }
 }
 EOL
