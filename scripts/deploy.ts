@@ -1,6 +1,7 @@
-import { RpcProvider, Account, Contract, json, CallData, constants, hash } from "starknet";
+import { RpcProvider, Account, Contract, json, CallData, constants, hash, randomAddress } from "starknet";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 // Configuration
 const DEVNET_URL = "http://starknet-devnet:5050";
@@ -28,6 +29,11 @@ const findContractFile = (contract: string, fileType: "compiled_contract_class" 
   
   return path.join(TARGET_DIR, matchingFile);
 };
+
+// Helper function to generate a random hex string for salt
+function generateRandomSalt(): string {
+  return "0x" + crypto.randomBytes(32).toString("hex");
+}
 
 // Main deployment function
 async function main() {
@@ -62,32 +68,32 @@ async function main() {
   
   // Deploy Prediction Contract
   console.log("Deploying Prediction Contract...");
-  const predictionDeployment = await deployContract(account, "prophecy_sunya_prediction", {});
+  const predictionDeployment = await deployContract(account, provider, "prophecy_sunya_prediction", {});
   deployments.prediction = predictionDeployment;
   
   // Deploy NFT Contract
   console.log("Deploying NFT Contract...");
-  const nftDeployment = await deployContract(account, "prophecy_sunya_nft", {});
+  const nftDeployment = await deployContract(account, provider, "prophecy_sunya_nft", {});
   deployments.nft = nftDeployment;
   
   // Deploy Gas Tank Contract
   console.log("Deploying Gas Tank Contract...");
-  const gasTankDeployment = await deployContract(account, "prophecy_sunya_gas_tank", {});
+  const gasTankDeployment = await deployContract(account, provider, "prophecy_sunya_gas_tank", {});
   deployments.gasTank = gasTankDeployment;
   
   // Deploy Oracle Contract
   console.log("Deploying Oracle Contract...");
-  const oracleDeployment = await deployContract(account, "prophecy_sunya_oracle", {});
+  const oracleDeployment = await deployContract(account, provider, "prophecy_sunya_oracle", {});
   deployments.oracle = oracleDeployment;
   
   // Deploy Governance Contract
   console.log("Deploying Governance Contract...");
-  const governanceDeployment = await deployContract(account, "prophecy_sunya_governance", {});
+  const governanceDeployment = await deployContract(account, provider, "prophecy_sunya_governance", {});
   deployments.governance = governanceDeployment;
   
   // Deploy Bridge Contract
   console.log("Deploying Bridge Contract...");
-  const bridgeDeployment = await deployContract(account, "prophecy_sunya_bridge", {});
+  const bridgeDeployment = await deployContract(account, provider, "prophecy_sunya_bridge", {});
   deployments.bridge = bridgeDeployment;
   
   // Save deployments
@@ -99,7 +105,7 @@ async function main() {
 }
 
 // Helper function to deploy a contract
-async function deployContract(account: Account, contractName: string, constructorArgs: any = {}) {
+async function deployContract(account: Account, provider: RpcProvider, contractName: string, constructorArgs: any = {}) {
   try {
     // Read contract files
     const compiledContractCasm = JSON.parse(
@@ -115,10 +121,8 @@ async function deployContract(account: Account, contractName: string, constructo
     let declareResponse;
     try {
       // Check if contract is already declared
-      // Use hash.computeContractClassHash instead of stark.computeContractClassHash
       const classHash = hash.computeContractClassHash(compiledContractSierra);
       try {
-        // Use the provider directly without accessing private properties
         await provider.getClassByHash(classHash);
         console.log(`Contract ${contractName} already declared with class hash: ${classHash}`);
       } catch (e) {
@@ -145,8 +149,8 @@ async function deployContract(account: Account, contractName: string, constructo
     
     // Deploy contract
     console.log(`Deploying ${contractName}...`);
-    // Use hash.randomAddress instead of stark.randomAddress
-    const salt = hash.randomAddress();
+    // Generate a random salt using crypto
+    const salt = generateRandomSalt();
     const deployResponse = await account.deployContract({
       classHash: declareResponse ? declareResponse.class_hash : hash.computeContractClassHash(compiledContractSierra),
       constructorCalldata,
