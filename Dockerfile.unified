@@ -44,33 +44,12 @@ else\n\
   echo "Warning: No contract deployments found at /app/deployments/devnet_latest.json"\n\
 fi' > /app/load-contract-addresses.sh && chmod +x /app/load-contract-addresses.sh
 
-# Create entrypoint script
-RUN echo '#!/bin/bash\n\
-if [ "$1" = "deploy" ]; then\n\
-  cd /app/scripts && npm run deploy\n\
-elif [ "$1" = "frontend" ]; then\n\
-  source /app/load-contract-addresses.sh\n\
-  cd /app/frontend && npm run dev\n\
-elif [ "$1" = "frontend:build" ]; then\n\
-  source /app/load-contract-addresses.sh\n\
-  cd /app/frontend && npm run build\n\
-elif [ "$1" = "frontend:start" ]; then\n\
-  source /app/load-contract-addresses.sh\n\
-  cd /app/frontend && npm run start\n\
-elif [ "$1" = "shell" ]; then\n\
-  exec /bin/bash\n\
-else\n\
-  echo "Usage: docker run [OPTIONS] IMAGE [COMMAND]"\n\
-  echo "Commands:"\n\
-  echo "  deploy         - Deploy contracts using TypeScript deployment script"\n\
-  echo "  frontend       - Start Next.js development server"\n\
-  echo "  frontend:build - Build Next.js production bundle"\n\
-  echo "  frontend:start - Start Next.js production server"\n\
-  echo "  shell          - Start a bash shell"\n\
-fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Copy the entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Expose port for Next.js
 EXPOSE 3000
 
 # Use the entrypoint script directly
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
