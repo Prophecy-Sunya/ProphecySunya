@@ -1,4 +1,4 @@
-import { RpcProvider, Account, Contract, json, stark, CallData, constants } from "starknet";
+import { RpcProvider, Account, Contract, json, CallData, constants, hash } from "starknet";
 import fs from "fs";
 import path from "path";
 
@@ -115,9 +115,11 @@ async function deployContract(account: Account, contractName: string, constructo
     let declareResponse;
     try {
       // Check if contract is already declared
-      const classHash = stark.computeContractClassHash(compiledContractSierra);
+      // Use hash.computeContractClassHash instead of stark.computeContractClassHash
+      const classHash = hash.computeContractClassHash(compiledContractSierra);
       try {
-        await account.provider.getClassByHash(classHash);
+        // Use the provider directly without accessing private properties
+        await provider.getClassByHash(classHash);
         console.log(`Contract ${contractName} already declared with class hash: ${classHash}`);
       } catch (e) {
         // Contract not declared, declare it
@@ -127,7 +129,7 @@ async function deployContract(account: Account, contractName: string, constructo
         });
         
         // Wait for transaction to be accepted
-        await account.provider.waitForTransaction(declareResponse.transaction_hash);
+        await provider.waitForTransaction(declareResponse.transaction_hash);
         console.log(`Contract ${contractName} declared with transaction hash: ${declareResponse.transaction_hash}`);
       }
     } catch (error) {
@@ -143,20 +145,21 @@ async function deployContract(account: Account, contractName: string, constructo
     
     // Deploy contract
     console.log(`Deploying ${contractName}...`);
-    const salt = stark.randomAddress();
+    // Use hash.randomAddress instead of stark.randomAddress
+    const salt = hash.randomAddress();
     const deployResponse = await account.deployContract({
-      classHash: declareResponse ? declareResponse.class_hash : stark.computeContractClassHash(compiledContractSierra),
+      classHash: declareResponse ? declareResponse.class_hash : hash.computeContractClassHash(compiledContractSierra),
       constructorCalldata,
       salt,
     });
     
     // Wait for transaction to be accepted
-    await account.provider.waitForTransaction(deployResponse.transaction_hash);
+    await provider.waitForTransaction(deployResponse.transaction_hash);
     
     console.log(`Contract ${contractName} deployed at address: ${deployResponse.contract_address}`);
     
     return {
-      classHash: declareResponse ? declareResponse.class_hash : stark.computeContractClassHash(compiledContractSierra),
+      classHash: declareResponse ? declareResponse.class_hash : hash.computeContractClassHash(compiledContractSierra),
       address: deployResponse.contract_address,
       transactionHash: deployResponse.transaction_hash,
     };
