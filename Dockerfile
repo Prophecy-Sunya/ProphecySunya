@@ -53,11 +53,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
   python3 \
   python3-pip \
+  python3-dev \
   ca-certificates \
   tini \
   wget \
   git \
+  build-essential \
+  pkg-config \
+  libssl-dev \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Starknet CLI
+RUN pip3 install starknet-py==0.18.1 cairo-lang==0.12.0 starknet-devnet==0.5.5 --no-cache-dir
 
 # Install Node.js from NodeSource repository
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
