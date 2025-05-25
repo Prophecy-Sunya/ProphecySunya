@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  starknet-devnet:
+    image: shardlabs/starknet-devnet:0.4.0
+    ports:
+      - "5050:5050"
+    command: --seed 42
+    networks:
+      - starknet-network
+
+  contract-deployer:
+    build:
+      context: .
+      dockerfile: Dockerfile.deployer
+    volumes:
+      - ./:/app
+      - ./deployments:/app/deployments
+    depends_on:
+      - starknet-devnet
+    networks:
+      - starknet-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - ./deployments:/app/deployments
+    depends_on:
+      - contract-deployer
+    networks:
+      - starknet-network
+
+networks:
+  starknet-network:
+    driver: bridge
