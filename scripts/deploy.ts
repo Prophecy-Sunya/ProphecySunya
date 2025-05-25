@@ -1,4 +1,4 @@
-import { RpcProvider, Account, Contract, json, CallData, constants, hash, randomAddress } from "starknet";
+import { RpcProvider, Account, Contract, json, CallData, constants, hash } from "starknet";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
