@@ -29,7 +29,6 @@ services:
       starknet-devnet:
         condition: service_healthy
     environment:
-      - STARKNET_NETWORK=devnet
       - STARKNET_DEVNET_URL=http://starknet-devnet:5050
 
   # Frontend application
