@@ -30,7 +30,7 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Define your landing page path and the default path for connected users
     const LANDING_PAGE_PATH = "/";
-    const CONNECTED_DEFAULT_PATH = "/markets";
+    const CONNECTED_DEFAULT_PATH = "/home";
     if (isConnected) {
       // If the wallet is connected
       // And the user is currently on the landing page, redirect to the main app's default path

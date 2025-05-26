@@ -17,10 +17,10 @@ import NextLink from "next/link";
 import { SearchIcon } from "@/components/icons";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
+import { truncateAddress } from "@/utils/helpers";
+import { WalletIcon } from "@heroicons/react/24/outline";
 import ConnectStarknetWallet from "./connect-starknet-wallet-button";
 import Logo from "./logo";
-import { truncateAddress } from "@/utils/helpers";
-import { UserIcon } from "@heroicons/react/24/outline";
 
 interface NavbarProps {
   walletAddress?: string;
@@ -28,26 +28,26 @@ interface NavbarProps {
 }
 
 export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
-  const searchInput = (
-    <Input
-      aria-label="Search"
-      classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
-      }}
-      endContent={
-        <Kbd className="hidden lg:inline-block" keys={["command"]}>
-          K
-        </Kbd>
-      }
-      labelPlacement="outside"
-      placeholder="Search..."
-      startContent={
-        <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-      }
-      type="search"
-    />
-  );
+  // const searchInput = (
+  //   <Input
+  //     aria-label="Search"
+  //     classNames={{
+  //       inputWrapper: "bg-default-100",
+  //       input: "text-sm",
+  //     }}
+  //     endContent={
+  //       <Kbd className="hidden lg:inline-block" keys={["command"]}>
+  //         K
+  //       </Kbd>
+  //     }
+  //     labelPlacement="outside"
+  //     placeholder="Search..."
+  //     startContent={
+  //       <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+  //     }
+  //     type="search"
+  //   />
+  // );
 
   return (
     <HeroUINavbar isBordered>
@@ -79,7 +79,7 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="hidden sm:flex gap-2">
+        <NavbarItem className="hidden lg:flex gap-2">
           {/* <Link isExternal aria-label="Twitter" href={siteConfig.links.twitter}>
             <TwitterIcon className="text-default-500" />
           </Link>
@@ -91,7 +91,7 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
           </Link> */}
           <ThemeSwitch />
         </NavbarItem>
-        <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
+        {/* <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem> */}
         {/* <NavbarItem className="hidden md:flex">
           <Button
             isExternal
@@ -108,7 +108,7 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
         {isConnected && walletAddress ? (
           <NavbarItem>
             <div className="flex items-center gap-2 text-default-500">
-              <UserIcon className="h-6 w-6 text-default-500" />
+              <WalletIcon className="h-6 w-6 text-default-500" />
               <p>{truncateAddress(walletAddress)}</p>
             </div>
           </NavbarItem>
@@ -116,7 +116,7 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
         <ConnectStarknetWallet />
       </NavbarContent>
 
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
+      <NavbarContent className="lg:hidden basis-1 pl-4" justify="end">
         {/* <Link isExternal aria-label="Github" href={siteConfig.links.github}>
           <GithubIcon className="text-default-500" />
         </Link> */}
@@ -125,8 +125,8 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
       </NavbarContent>
 
       <NavbarMenu>
-        {searchInput}
-        <div className="mx-4 mt-2 flex flex-col gap-2">
+        {/* {searchInput} */}
+        <div className="mx-4 mt-2 flex flex-col items-center justify-center gap-4">
           {siteConfig.navItems.map((item, index) => (
             <NavbarMenuItem key={`${item}-${index}`}>
               <Link
@@ -144,6 +144,18 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
               </Link>
             </NavbarMenuItem>
           ))}
+          <div className="flex sm:hidden flex-col items-center justify-between gap-4">
+            {/* <ThemeSwitch /> */}
+            {isConnected && walletAddress ? (
+              <NavbarItem>
+                <div className="flex items-center gap-2">
+                  <WalletIcon className="h-6 w-6 text-default-500" />
+                  <p>{truncateAddress(walletAddress)}</p>
+                </div>
+              </NavbarItem>
+            ) : null}
+            <ConnectStarknetWallet />
+          </div>
         </div>
       </NavbarMenu>
     </HeroUINavbar>

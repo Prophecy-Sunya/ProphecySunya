@@ -156,7 +156,7 @@ const ConnectStarknetWallet: FC = () => {
     return (
       <Button
         onPress={handleDisconnect}
-        className="bg-gradient-to-tr from-pink-500 to-yellow-500  shadow-lg transition-transform duration-200 ease-in-out hover:scale-105"
+        className="bg-gradient-to-tr from-pink-500 to-yellow-500 w-full shadow-lg transition-transform duration-200 ease-in-out hover:scale-105"
         radius="full"
         size="md"
         isLoading={isManualConnecting}
