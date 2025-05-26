@@ -1,10 +1,7 @@
 FROM node:20-alpine AS builder
-
 WORKDIR /app
-
 # Install dependencies for building
 RUN apk add --no-cache python3 make g++ git bash curl
-
 # Install Scarb for Cairo contracts
 ENV SCARB_VERSION=2.4.0
 RUN mkdir -p /tmp/scarb && \
@@ -14,25 +11,21 @@ RUN mkdir -p /tmp/scarb && \
     mv scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl /usr/local/scarb && \
     ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
     rm -rf /tmp/scarb
-
 # Copy Cairo contracts and Scarb.toml for building
 COPY contracts/ /app/contracts/
 COPY src/ /app/src/
 COPY Scarb.toml /app/
-
 # Build Cairo contracts
 RUN scarb --version && scarb build
-
+# Debug: List all generated artifacts
+RUN find /app -name "*.json" | grep -i contract
 # Copy package files for deployment scripts
 COPY scripts/package.json scripts/tsconfig.json /app/scripts/
-
 # Install script dependencies
 WORKDIR /app/scripts
 RUN npm install
-
 # Copy the deployment script
 COPY scripts/deploy.ts /app/scripts/
-
 # Set the entrypoint
 WORKDIR /app
 CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]

@@ -6,7 +6,6 @@ import crypto from "crypto";
 // Configuration
 const DEVNET_URL = "http://starknet-devnet:5050";
 const CONTRACTS_DIR = path.resolve(__dirname, "../src");
-const TARGET_DIR = path.resolve(__dirname, "../target/dev");
 const DEPLOYMENTS_DIR = path.resolve(__dirname, "../deployments");
 
 // Ensure deployments directory exists
@@ -14,39 +13,81 @@ if (!fs.existsSync(DEPLOYMENTS_DIR)) {
   fs.mkdirSync(DEPLOYMENTS_DIR, { recursive: true });
 }
 
-// Helper function to find contract files
+// Helper function to find contract files with multiple potential locations
 const findContractFile = (contract: string, fileType: "compiled_contract_class" | "contract_class"): string => {
-  const files = fs.readdirSync(TARGET_DIR);
-  const pattern = new RegExp(`.*${contract}\\.${fileType}\\.json$`);
-  const matchingFile = files.find((file) => pattern.test(file));
+  // Try multiple potential locations
+  const potentialDirs = [
+    path.resolve(__dirname, "../target/dev"),
+    path.resolve(__dirname, "../target/release"),
+    path.resolve(__dirname, "../target"),
+    // Add workspace member paths based on Scarb.toml
+    path.resolve(__dirname, "../target/contracts/prediction"),
+    path.resolve(__dirname, "../target/contracts/nft"),
+    path.resolve(__dirname, "../target/contracts/gas_tank"),
+    path.resolve(__dirname, "../target/contracts/oracle"),
+    path.resolve(__dirname, "../target/contracts/governance"),
+    path.resolve(__dirname, "../target/contracts/bridge")
+  ];
   
-  if (!matchingFile) {
-    throw new Error(
-      `Could not find ${fileType} file for contract "${contract}". ` +
-      `Check if your contract name is correct inside the ${TARGET_DIR} directory.`
-    );
+  // Debug: List all directories being checked
+  console.log(`Searching for ${contract}.${fileType}.json in the following directories:`);
+  potentialDirs.forEach(dir => console.log(` - ${dir}`));
+  
+  // Try to find the file in each potential directory
+  for (const dir of potentialDirs) {
+    try {
+      if (fs.existsSync(dir)) {
+        console.log(`Checking directory: ${dir}`);
+        const files = fs.readdirSync(dir);
+        console.log(`Files in ${dir}:`, files);
+        
+        const pattern = new RegExp(`.*${contract}\\.${fileType}\\.json$`);
+        const matchingFile = files.find((file) => pattern.test(file));
+        
+        if (matchingFile) {
+          console.log(`Found matching file: ${matchingFile} in ${dir}`);
+          return path.join(dir, matchingFile);
+        }
+      } else {
+        console.log(`Directory does not exist: ${dir}`);
+      }
+    } catch (e) {
+      console.log(`Error checking directory ${dir}:`, e);
+    }
   }
   
-  return path.join(TARGET_DIR, matchingFile);
+  // If we get here, we couldn't find the file
+  throw new Error(
+    `Could not find ${fileType} file for contract "${contract}". ` +
+    `Check if your contract name is correct and build output location.`
+  );
 };
 
-// Helper function to generate a random hex string for salt
+// Helper function to generate a random salt
 function generateRandomSalt(): string {
   return "0x" + crypto.randomBytes(32).toString("hex");
 }
 
-// Main deployment function
+// Main function
 async function main() {
-  console.log("Starting deployment process...");
+  console.log("Starting contract deployment...");
   
-  // Connect to Devnet
-  console.log(`Connecting to Devnet at ${DEVNET_URL}`);
-  const provider = new RpcProvider({ nodeUrl: DEVNET_URL });
+  // Debug: Check if target directory exists and list contents
+  const targetDir = path.resolve(__dirname, "../target");
+  if (fs.existsSync(targetDir)) {
+    console.log(`Target directory exists at ${targetDir}`);
+    console.log("Contents of target directory:");
+    listDirectoryContents(targetDir);
+  } else {
+    console.log(`Target directory does not exist at ${targetDir}`);
+  }
   
-  // Get pre-funded account from Devnet
-  console.log("Fetching pre-funded account from Devnet...");
-  const accountsResponse = await fetch(`${DEVNET_URL}/predeployed_accounts`);
-  const accounts = await accountsResponse.json();
+  // Create provider
+  const provider = new RpcProvider({ nodeUrl: process.env.STARKNET_DEVNET_URL || DEVNET_URL });
+  
+  // Get pre-funded accounts from Devnet
+  console.log("Fetching pre-funded accounts from Devnet...");
+  const { data: accounts } = await provider.getPredeployedAccounts();
   
   if (!accounts || accounts.length === 0) {
     throw new Error("No pre-funded accounts found in Devnet");
@@ -102,6 +143,25 @@ async function main() {
   console.log(`Deployments saved to ${deploymentsPath}`);
   
   console.log("All contracts deployed successfully!");
+}
+
+// Helper function to recursively list directory contents
+function listDirectoryContents(dir: string, indent: string = '') {
+  try {
+    const files = fs.readdirSync(dir);
+    files.forEach(file => {
+      const filePath = path.join(dir, file);
+      const stats = fs.statSync(filePath);
+      if (stats.isDirectory()) {
+        console.log(`${indent}📁 ${file}/`);
+        listDirectoryContents(filePath, indent + '  ');
+      } else {
+        console.log(`${indent}📄 ${file}`);
+      }
+    });
+  } catch (error) {
+    console.error(`Error listing directory ${dir}:`, error);
+  }
 }
 
 // Helper function to deploy a contract
