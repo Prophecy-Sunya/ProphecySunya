@@ -2,6 +2,7 @@ import { RpcProvider, Account, Contract, json, CallData, constants, hash } from 
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import fetch from "node-fetch";
 
 // Configuration
 const DEVNET_URL = "http://starknet-devnet:5050";
@@ -68,6 +69,31 @@ function generateRandomSalt(): string {
   return "0x" + crypto.randomBytes(32).toString("hex");
 }
 
+// Helper function to get predeployed accounts from Devnet
+async function getPredeployedAccounts() {
+  try {
+    const response = await fetch(`${process.env.STARKNET_DEVNET_URL || DEVNET_URL}/predeployed_accounts`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch predeployed accounts: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching predeployed accounts:", error);
+    
+    // Fallback to hardcoded account if API fails
+    // These are the default accounts created by starknet-devnet with seed 0
+    return {
+      data: [
+        {
+          address: "0x64b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691",
+          private_key: "0x71d7bb07b9a64f6f78ac4c816aff4da9",
+          public_key: "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9"
+        }
+      ]
+    };
+  }
+}
+
 // Main function
 async function main() {
   console.log("Starting contract deployment...");
@@ -87,13 +113,13 @@ async function main() {
   
   // Get pre-funded accounts from Devnet
   console.log("Fetching pre-funded accounts from Devnet...");
-  const { data: accounts } = await provider.getPredeployedAccounts();
+  const accounts = await getPredeployedAccounts();
   
-  if (!accounts || accounts.length === 0) {
+  if (!accounts.data || accounts.data.length === 0) {
     throw new Error("No pre-funded accounts found in Devnet");
   }
   
-  const prefundedAccount = accounts[0];
+  const prefundedAccount = accounts.data[0];
   console.log(`Using account: ${prefundedAccount.address}`);
   console.log(`Private key: ${prefundedAccount.private_key.substring(0, 10)}... (truncated)`);
   
