@@ -9,6 +9,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@heroui/button";
 import { useState, useEffect } from "react";
+import { GridPattern } from "./grid-pattern";
+import { cn } from "@/lib/utils";
 
 export function HeroSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -26,7 +28,7 @@ export function HeroSection() {
   }, []);
 
   return (
-    <div className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+    <div className="relative pt-24  pb-16 md:pt-32 md:pb-24 flex size-full flex-col items-center justify-center overflow-hidden">
       {/* Background gradient */}
       {/* <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background to-background -z-10" /> */}
 
@@ -39,6 +41,28 @@ export function HeroSection() {
           style={{ animationDelay: "1s" }}
         />
       </div> */}
+
+      <GridPattern
+        squares={[
+          [4, 4],
+          [5, 1],
+          [8, 2],
+          [5, 3],
+          [5, 5],
+          [10, 10],
+          [12, 15],
+          [15, 10],
+          [10, 15],
+          [15, 10],
+          [10, 15],
+          [15, 10],
+        ]}
+        strokeDasharray={"4 2"}
+        className={cn(
+          "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
+          "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
+        )}
+      />
 
       {/* <Container className="relative"> */}
       <div className="relative">
@@ -106,7 +130,7 @@ export function HeroSection() {
             ].map((stat, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-lg bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors"
+                className="p-4 rounded-lg hover:bg-default-50/80 hover:backdrop-blur-sm  transition-colors duration-300 ease-in-out"
               >
                 <stat.icon className="h-5 w-5 mx-auto mb-2 text-primary" />
                 <p className="text-2xl font-bold">{stat.value}</p>
