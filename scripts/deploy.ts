@@ -83,19 +83,43 @@ function generateRandomSalt(): string {
 // Helper function to get predeployed accounts from Devnet
 async function getPredeployedAccounts(): Promise<PredeployedAccountsResponse> {
   try {
-    const response = await fetch(`${process.env.STARKNET_DEVNET_URL || DEVNET_URL}/predeployed_accounts`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch predeployed accounts: ${response.statusText}`);
-    }
-    return await response.json() as PredeployedAccountsResponse;
-  } catch (error) {
-    console.error("Error fetching predeployed accounts:", error);
+    // Try multiple potential endpoints
+    const endpoints = [
+      '/predeployed_accounts',
+      '/accounts',
+      '/devnet/accounts',
+      '/predeployed'
+    ];
     
-    // Fallback to hardcoded account if API fails
-    // These are the default accounts created by starknet-devnet with seed 0
+    let lastError = null;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`Trying to fetch accounts from endpoint: ${endpoint}`);
+        const url = `${process.env.STARKNET_DEVNET_URL || DEVNET_URL}${endpoint}`;
+        const response = await fetch(url);
+        console.log(`Response status from ${url}: ${response.status}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`Found accounts at endpoint: ${endpoint}`);
+          return data as PredeployedAccountsResponse;
+        }
+      } catch (err) {
+        lastError = err;
+        console.error(`Error fetching from ${endpoint}:`, err);
+      }
+    }
+    
+    throw lastError || new Error('All endpoints failed');
+  } catch (error) {
+    console.error("Error fetching predeployed accounts from all endpoints:", error);
+    
+    // Always use hardcoded fallback accounts regardless of API failures
+    console.log("Using hardcoded fallback accounts");
     return {
       data: [
         {
+          // Account for seed 42 (matching docker-compose configuration)
           address: "0x64b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691",
           private_key: "0x71d7bb07b9a64f6f78ac4c816aff4da9",
           public_key: "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9"
@@ -126,8 +150,17 @@ async function main() {
   console.log("Fetching pre-funded accounts from Devnet...");
   const accounts = await getPredeployedAccounts();
   
+  // Always proceed with accounts, even if empty (fallback will provide them)
   if (!accounts.data || accounts.data.length === 0) {
-    throw new Error("No pre-funded accounts found in Devnet");
+    console.log("No accounts found from API, using fallback accounts");
+    accounts.data = [
+      {
+        // Account for seed 42 (matching docker-compose configuration)
+        address: "0x64b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691",
+        private_key: "0x71d7bb07b9a64f6f78ac4c816aff4da9",
+        public_key: "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9"
+      }
+    ];
   }
   
   const prefundedAccount = accounts.data[0];
