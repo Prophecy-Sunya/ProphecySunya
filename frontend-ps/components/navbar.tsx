@@ -17,8 +17,8 @@ import NextLink from "next/link";
 import { SearchIcon } from "@/components/icons";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
-import WalletButton from "./wallet-button";
 import ConnectStarknetWallet from "./connect-starknet-wallet-button";
+import Logo from "./logo";
 
 export const Navbar = () => {
   const searchInput = (
@@ -43,12 +43,11 @@ export const Navbar = () => {
   );
 
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
+    <HeroUINavbar isBordered>
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-1" href="/">
-            {/* <Logo />  TODO: Add Logo */}
-            <p className="font-bold text-inherit text-2xl">ProphecySunya</p>
+            <Logo />
           </NextLink>
         </NavbarBrand>
         <ul className="hidden lg:flex gap-4 justify-start ml-2">

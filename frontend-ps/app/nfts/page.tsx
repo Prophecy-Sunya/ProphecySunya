@@ -9,7 +9,7 @@ export default function NftsPage() {
       <h1 className={title()}>Prophet NFTs</h1>
       <div className="container mx-auto px-4 py-8">
         <NFTFilters />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
           {nfts.map((nft) => (
             <NftCard
               key={nft.id}

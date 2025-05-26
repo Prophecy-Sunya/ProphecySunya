@@ -7,6 +7,7 @@ import {
   Button,
   Accordion,
   AccordionItem,
+  Chip,
 } from "@heroui/react";
 import {
   ChatBubbleOvalLeftIcon,
@@ -103,19 +104,28 @@ export function FAQs() {
     content: "px-2",
   };
 
-  const toggleItem = (id: string) => {
-    setOpenItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
   const filteredFAQs =
     selectedCategory === "all"
       ? faqData
       : faqData.filter((faq) => faq.category === selectedCategory);
 
   return (
-    <section className="mx-auto">
+    <section className="py-16 md:py-24 bg-muted/30">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <Chip variant="bordered" className="mb-4">
+          <div className="flex items-center font-semibold">
+            <QuestionMarkCircleIcon className="mr-1 h-3 w-3" />
+            <span>FAQs</span>
+          </div>
+        </Chip>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-muted-foreground text-lg">
+          Have questions about ProphecySunya? Here are some of the most common
+          queries answered to help you get started.
+        </p>
+      </div>
       {/* Category Filter */}
       <div className="flex flex-wrap justify-center gap-3 mb-8">
         {categories.map((category) => {
@@ -156,9 +166,9 @@ export function FAQs() {
       </div>
 
       {/* Contact Section */}
-      <div className="mt-16 text-center">
+      {/* <div className="mt-16 text-center">
         <div className="bg-default/30 backdrop-blur-md border border-default/10 rounded-2xl p-8 max-w-2xl mx-auto">
-          <QuestionMarkCircleIcon className="w-12 h-12 text-secondary-400 mx-auto mb-4" />
+          <QuestionMarkCircleIcon className="w-12 h-12 text-warning mx-auto mb-4" />
           <h3 className="text-2xl font-bold  mb-2">Still have questions?</h3>
           <p className="text-default-600 mb-6">
             Can't find the answer you're looking for? Our support team is here
@@ -180,7 +190,7 @@ export function FAQs() {
             </Button>
           </div>
         </div>
-      </div>
+      </div> */}
     </section>
   );
 }
