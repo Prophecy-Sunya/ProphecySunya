@@ -17,8 +17,8 @@ COPY src/ /app/src/
 COPY Scarb.toml /app/
 # Build Cairo contracts
 RUN scarb --version && scarb build
-# Debug: List all generated artifacts
-RUN find /app -name "*.json" | grep -i contract
+# Debug: List all generated artifacts (with || true to prevent build failure if no files found)
+RUN find /app -name "*.json" | grep -i contract || true
 # Copy package files for deployment scripts
 COPY scripts/package.json scripts/tsconfig.json /app/scripts/
 # Install script dependencies
