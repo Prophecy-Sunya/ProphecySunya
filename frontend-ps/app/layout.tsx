@@ -4,8 +4,7 @@ import { Metadata, Viewport } from "next";
 
 import { Providers } from "./providers";
 
-import { Footer } from "@/components/footer";
-import { Navbar } from "@/components/navbar";
+import { MainLayoutWrapper } from "@/components/main-layout-wrapper";
 import { fontSans } from "@/config/fonts";
 import { siteConfig } from "@/config/site";
 import Hydration from "@/store-providers/hydration";
@@ -28,6 +27,16 @@ export const viewport: Viewport = {
   ],
 };
 
+/**
+ * RootLayout Component
+ *
+ * This is the top-level Server Component for your Next.js application.
+ * It sets up the basic HTML structure, global styles, theme providers,
+ * and handles hydration for Zustand stores.
+ *
+ * It delegates the conditional rendering of the main application layout
+ * versus the landing page to the `ClientLayoutWrapper` based on wallet connection status.
+ */
 export default function RootLayout({
   children,
 }: {
@@ -43,14 +52,15 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <div className="relative flex flex-col min-h-screen z-10">
-            <Hydration />
-            <Navbar />
-            <main className="container mx-auto max-w-7xl flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          {/* Hydration component for Zustand stores*/}
+          <Hydration />
+          {/*
+            The ClientLayoutWrapper will now handle the conditional rendering
+            of the Navbar, main content, and Footer based on wallet connection.
+            It receives the 'children' (your page content, including the landing page)
+            from this RootLayout.
+          */}
+          <MainLayoutWrapper>{children}</MainLayoutWrapper>
         </Providers>
       </body>
     </html>

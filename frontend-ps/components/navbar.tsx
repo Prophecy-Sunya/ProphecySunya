@@ -19,8 +19,15 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
 import ConnectStarknetWallet from "./connect-starknet-wallet-button";
 import Logo from "./logo";
+import { truncateAddress } from "@/utils/helpers";
+import { UserIcon } from "@heroicons/react/24/outline";
 
-export const Navbar = () => {
+interface NavbarProps {
+  walletAddress?: string;
+  isConnected?: boolean;
+}
+
+export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
   const searchInput = (
     <Input
       aria-label="Search"
@@ -98,7 +105,14 @@ export const Navbar = () => {
           </Button>
         </NavbarItem> */}
 
-        {/* Wallet Button */}
+        {isConnected && walletAddress ? (
+          <NavbarItem>
+            <div className="flex items-center gap-2 text-default-500">
+              <UserIcon className="h-6 w-6 text-default-500" />
+              <p>{truncateAddress(walletAddress)}</p>
+            </div>
+          </NavbarItem>
+        ) : null}
         <ConnectStarknetWallet />
       </NavbarContent>
 

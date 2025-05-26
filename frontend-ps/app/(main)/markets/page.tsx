@@ -1,9 +1,9 @@
+import { predictions } from "@/app/mockdata";
 import CreatePredictionButton from "@/components/create-prediction-button";
 import PredictionCard from "@/components/prediction-card";
 import { title } from "@/components/primitives";
-import { predictions } from "../mockdata";
 
-export default function PredictionsPage() {
+export default function MarketsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-10">
