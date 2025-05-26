@@ -43,20 +43,20 @@ export function HeroSection() {
       </div> */}
 
       <GridPattern
-        squares={[
-          [4, 4],
-          [5, 1],
-          [8, 2],
-          [5, 3],
-          [5, 5],
-          [10, 10],
-          [12, 15],
-          [15, 10],
-          [10, 15],
-          [15, 10],
-          [10, 15],
-          [15, 10],
-        ]}
+        // squares={[
+        //   [4, 4],
+        //   [5, 1],
+        //   [8, 2],
+        //   [5, 3],
+        //   [5, 5],
+        //   [10, 10],
+        //   [12, 15],
+        //   [15, 10],
+        //   [10, 15],
+        //   [15, 10],
+        //   [10, 15],
+        //   [15, 10],
+        // ]}
         strokeDasharray={"4 2"}
         className={cn(
           "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",

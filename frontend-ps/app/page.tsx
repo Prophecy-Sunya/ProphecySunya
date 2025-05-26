@@ -1,17 +1,14 @@
-import { CtaSection } from "@/components/cta-section";
-import { FAQs } from "@/components/faqs";
-import { FeaturesSection } from "@/components/features-section";
-import { GridPattern } from "@/components/grid-pattern";
-import { HeroSection } from "@/components/hero-section";
-import { HowItWorks } from "@/components/how-it-works";
-import { MarketsSection } from "@/components/markets-section";
-import { cn } from "@/lib/utils";
+import { CtaSection } from "@/components/landing/cta-section";
+import { FAQs } from "@/components/landing/faqs";
+import { FeaturesSection } from "@/components/landing/features-section";
+import { HeroSection } from "@/components/landing/hero-section";
+import { HowItWorks } from "@/components/landing/how-it-works";
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       <HeroSection />
-      <MarketsSection />
+      {/* <MarketsSection /> */}
       <HowItWorks />
       <FeaturesSection />
       <FAQs />

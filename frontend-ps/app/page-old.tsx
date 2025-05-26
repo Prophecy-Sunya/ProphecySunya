@@ -5,7 +5,7 @@ import { features, predictions } from "./mockdata";
 import PredictionCard from "@/components/prediction-card";
 import HowItWorksCard from "@/components/how-it-works-card";
 import { subtitle, title } from "@/components/primitives";
-import { FAQs } from "@/components/faqs";
+import { FAQs } from "@/components/landing/faqs";
 
 export default function Home() {
   return (

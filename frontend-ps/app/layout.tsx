@@ -5,11 +5,9 @@ import { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 
 import { Footer } from "@/components/footer";
-import { GridPattern } from "@/components/grid-pattern";
 import { Navbar } from "@/components/navbar";
 import { fontSans } from "@/config/fonts";
 import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
 import Hydration from "@/store-providers/hydration";
 
 export const metadata: Metadata = {

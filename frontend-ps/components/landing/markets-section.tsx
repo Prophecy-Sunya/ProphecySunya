@@ -17,8 +17,6 @@ import {
 } from "@heroui/react";
 import Link from "next/link";
 import { useState } from "react";
-import PredictionCard from "./prediction-card";
-import { predictions } from "@/app/mockdata";
 // Sample market data
 const markets = [
   {
@@ -213,17 +211,6 @@ export function MarketsSection() {
             </Card>
           </Link>
         ))}
-        {/* {predictions.map((prediction) => (
-          <PredictionCard
-            key={prediction.id}
-            category={prediction.category}
-            content={prediction.content}
-            creator={prediction.creator}
-            expirationTime={prediction.expirationTime}
-            verificationStatus={prediction.verificationStatus}
-            id={prediction.id}
-          />
-        ))} */}
       </div>
 
       <div className="mt-10 text-center">
