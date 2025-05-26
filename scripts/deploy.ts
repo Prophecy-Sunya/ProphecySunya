@@ -9,6 +9,17 @@ const DEVNET_URL = "http://starknet-devnet:5050";
 const CONTRACTS_DIR = path.resolve(__dirname, "../src");
 const DEPLOYMENTS_DIR = path.resolve(__dirname, "../deployments");
 
+// Define types for predeployed accounts
+interface PredeployedAccount {
+  address: string;
+  private_key: string;
+  public_key: string;
+}
+
+interface PredeployedAccountsResponse {
+  data: PredeployedAccount[];
+}
+
 // Ensure deployments directory exists
 if (!fs.existsSync(DEPLOYMENTS_DIR)) {
   fs.mkdirSync(DEPLOYMENTS_DIR, { recursive: true });
@@ -70,13 +81,13 @@ function generateRandomSalt(): string {
 }
 
 // Helper function to get predeployed accounts from Devnet
-async function getPredeployedAccounts() {
+async function getPredeployedAccounts(): Promise<PredeployedAccountsResponse> {
   try {
     const response = await fetch(`${process.env.STARKNET_DEVNET_URL || DEVNET_URL}/predeployed_accounts`);
     if (!response.ok) {
       throw new Error(`Failed to fetch predeployed accounts: ${response.statusText}`);
     }
-    return await response.json();
+    return await response.json() as PredeployedAccountsResponse;
   } catch (error) {
     console.error("Error fetching predeployed accounts:", error);
     
