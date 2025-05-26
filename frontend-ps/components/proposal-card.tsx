@@ -23,7 +23,7 @@ interface Proposal {
   creator: string;
   startTime: number;
   endTime: number;
-  status: "ACTIVE" | "PASSED" | "FAILED" | "PENDING";
+  status: string;
   yesVotes: number;
   noVotes: number;
 }

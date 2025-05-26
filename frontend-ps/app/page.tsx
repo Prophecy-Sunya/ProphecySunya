@@ -5,6 +5,7 @@ import { features, predictions } from "./mockdata";
 import PredictionCard from "@/components/prediction-card";
 import HowItWorksCard from "@/components/how-it-works-card";
 import { subtitle, title } from "@/components/primitives";
+import { FAQs } from "@/components/faqs";
 
 export default function Home() {
   return (
@@ -18,8 +19,8 @@ export default function Home() {
       </div>
 
       {/* How It Works */}
-      <div className="inline-block max-w-xl text-center justify-center">
-        <span className={title({ color: "foreground", size: "sm" })}>
+      <div className="inline-block text-center justify-center">
+        <span className={title({ color: "yellow", size: "sm" })}>
           How It Works&nbsp;
         </span>
       </div>
@@ -36,8 +37,8 @@ export default function Home() {
 
       {/* Latest Predictions */}
 
-      <div className="inline-block max-w-xl text-center justify-center">
-        <span className={title({ color: "foreground", size: "sm" })}>
+      <div className="inline-block text-center justify-center">
+        <span className={title({ color: "yellow", size: "sm" })}>
           Latest Predictions
         </span>
       </div>
@@ -53,6 +54,20 @@ export default function Home() {
             id={prediction.id}
           />
         ))}
+      </div>
+
+      {/* faqs  */}
+      <div className="inline-block text-center justify-center">
+        <span className={title({ color: "yellow", size: "sm" })}>
+          Frequently Asked Questions
+        </span>
+        <span className={subtitle({ class: "mt-2" })}>
+          Have questions? We have answers! Explore our FAQs to learn more about
+          how Prophet works, how to create predictions, and more.
+        </span>
+      </div>
+      <div className="w-full mb-20">
+        <FAQs />
       </div>
     </section>
   );

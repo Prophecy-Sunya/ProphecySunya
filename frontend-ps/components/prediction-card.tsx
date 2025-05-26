@@ -1,5 +1,6 @@
 "use client";
 
+import { useStoreWallet } from "@/stores/wallet-store";
 import { timeUntilExpiration } from "@/utils/helpers";
 import {
   Card,
@@ -26,6 +27,8 @@ const PredictionCard = ({
   expirationTime,
   verificationStatus,
 }: PredictionCardProps) => {
+  const { address, isConnected } = useStoreWallet((state) => state);
+  console.log("wallet info:", isConnected, address);
   return (
     <Card
       className="max-w-[400px]  bg-default/30 backdrop-blur-md  transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
