@@ -278,7 +278,7 @@ export const recentActivity = [
   },
 ];
 
-export const recentTransactions: Transaction[] = [
+export const recentTransactions = [
   {
     id: "t1",
     trader: "Tim",

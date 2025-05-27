@@ -144,7 +144,7 @@ export const Navbar = ({ walletAddress, isConnected }: NavbarProps) => {
               </Link>
             </NavbarMenuItem>
           ))}
-          <div className="flex sm:hidden flex-col items-center justify-between gap-4">
+          <div className="flex lg:hidden flex-col items-center justify-between gap-4">
             {/* <ThemeSwitch /> */}
             {isConnected && walletAddress ? (
               <NavbarItem>

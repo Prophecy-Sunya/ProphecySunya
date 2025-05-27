@@ -2,7 +2,7 @@
 
 import { hotPredictions, markets, recentActivity } from "@/app/mockdata";
 import CategoryFilter from "@/components/main/category-filter";
-import FeaturedMarketSlider from "@/components/main/featured-market-slider";
+import FeaturedMarketSlider from "@/components/main/featured-market";
 import MarketGrid from "@/components/main/market-grid";
 import { getTimeAgo } from "@/utils/helpers";
 import {
