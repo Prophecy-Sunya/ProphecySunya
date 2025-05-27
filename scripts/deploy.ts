@@ -1,5 +1,5 @@
-// DEPLOY SCRIPT VERSION 2.0 - ARTIFACT STRUCTURE FIX
-console.log("Running deployment script v2.0 with artifact structure fix");
+// DEPLOY SCRIPT VERSION 2.1 - TYPESCRIPT FIXES
+console.log("Running deployment script v2.1 with TypeScript fixes");
 
 import { Account, Contract, ec, json, stark, Provider, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
@@ -10,19 +10,35 @@ import crypto from "crypto";
 const DEPLOYMENTS_DIR = path.resolve(__dirname, "../deployments");
 const STARKNET_DEVNET_URL = process.env.STARKNET_DEVNET_URL || "http://starknet-devnet:5050";
 
+// Types
+interface DeploymentResult {
+  classHash: string;
+  address: string;
+  transactionHash: string;
+}
+
+interface Deployments {
+  prediction?: DeploymentResult;
+  nft?: DeploymentResult;
+  gasTank?: DeploymentResult;
+  oracle?: DeploymentResult;
+  governance?: DeploymentResult;
+  bridge?: DeploymentResult;
+}
+
 // Create deployments directory if it doesn't exist
 if (!fs.existsSync(DEPLOYMENTS_DIR)) {
   fs.mkdirSync(DEPLOYMENTS_DIR, { recursive: true });
 }
 
 // Helper function to generate a random salt
-function generateRandomSalt() {
+function generateRandomSalt(): string {
   return "0x" + crypto.randomBytes(32).toString("hex");
 }
 
 // Main deployment function
-async function main() {
-  console.log("Starting contract deployment with artifact structure fix...");
+async function main(): Promise<void> {
+  console.log("Starting contract deployment with TypeScript fixes...");
   
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");
@@ -41,7 +57,7 @@ async function main() {
   
   // Get pre-funded account from Devnet
   console.log("Fetching pre-funded accounts from Devnet...");
-  let account;
+  let account: Account;
   try {
     console.log("Trying to fetch accounts from endpoint: /predeployed_accounts");
     const response = await fetch(`${STARKNET_DEVNET_URL}/predeployed_accounts`);
@@ -71,8 +87,8 @@ async function main() {
     console.log(`Private key: ${privateKey.substring(0, 10)}... (truncated)`);
   }
   
-  // Initialize deployments object
-  const deployments = {};
+  // Initialize deployments object with proper typing
+  const deployments: Deployments = {};
   
   // Deploy Prediction Contract
   console.log("Deploying Prediction Contract...");
@@ -113,7 +129,7 @@ async function main() {
 }
 
 // Helper function to recursively list directory contents
-function listDirectoryContents(dir, indent = '') {
+function listDirectoryContents(dir: string, indent: string = ''): void {
   try {
     const files = fs.readdirSync(dir);
     console.log(`Files in ${dir}: ${JSON.stringify(files)}`);
@@ -131,7 +147,7 @@ function listDirectoryContents(dir, indent = '') {
 }
 
 // Helper function to find and parse the starknet_artifacts.json file
-function findStarknetArtifacts() {
+function findStarknetArtifacts(): any {
   // Try multiple potential locations
   const potentialDirs = [
     path.resolve(__dirname, "../target/dev"),
@@ -159,7 +175,7 @@ function findStarknetArtifacts() {
 }
 
 // Helper function to deploy a contract
-async function deployContract(account, provider, contractType) {
+async function deployContract(account: Account, provider: Provider, contractType: string): Promise<DeploymentResult> {
   try {
     // Find and parse the starknet_artifacts.json file
     const artifacts = findStarknetArtifacts();
@@ -207,7 +223,7 @@ async function deployContract(account, provider, contractType) {
     }
     
     // Prepare constructor calldata (empty for now)
-    const constructorCalldata = [];
+    const constructorCalldata: string[] = [];
     
     // Deploy contract
     console.log(`Deploying ${contractType} contract...`);
