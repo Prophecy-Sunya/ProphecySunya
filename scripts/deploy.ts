@@ -1,5 +1,5 @@
-// DEPLOY SCRIPT VERSION 2.3 - CONTRACT NAME MATCHING FIX
-console.log("Running deployment script v2.3 with contract name matching fix");
+// DEPLOY SCRIPT VERSION 2.4 - DEBUG DIRECTORY FIX
+console.log("Running deployment script v2.4 with debug directory fix");
 
 import { Account, Contract, ec, json, stark, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
@@ -9,6 +9,7 @@ import crypto from "crypto";
 // Constants
 const DEPLOYMENTS_DIR = path.resolve(__dirname, "../deployments");
 const STARKNET_DEVNET_URL = process.env.STARKNET_DEVNET_URL || "http://starknet-devnet:5050";
+const DEBUG_DIR = path.resolve(__dirname, "../temp_debug");
 
 // Types
 interface DeploymentResult {
@@ -36,10 +37,41 @@ const CONTRACT_TYPE_TO_PATTERN: Record<string, string[]> = {
   "bridge": ["bridge", "prophecy_sunya::bridge", "prophecy_sunya_bridge"]
 };
 
-// Create deployments directory if it doesn't exist
-if (!fs.existsSync(DEPLOYMENTS_DIR)) {
-  fs.mkdirSync(DEPLOYMENTS_DIR, { recursive: true });
+// Create required directories if they don't exist
+function ensureDirectoryExists(dirPath: string): void {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      console.log(`Creating directory: ${dirPath}`);
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  } catch (error) {
+    console.warn(`Warning: Could not create directory ${dirPath}: ${error}`);
+    // Continue execution even if directory creation fails
+  }
 }
+
+// Safe file write that doesn't throw if directory doesn't exist
+function safeWriteFileSync(filePath: string, content: string): boolean {
+  try {
+    // Ensure the directory exists
+    const dirPath = path.dirname(filePath);
+    ensureDirectoryExists(dirPath);
+    
+    // Write the file
+    fs.writeFileSync(filePath, content);
+    console.log(`Successfully wrote file: ${filePath}`);
+    return true;
+  } catch (error) {
+    console.warn(`Warning: Could not write file ${filePath}: ${error}`);
+    return false;
+  }
+}
+
+// Create deployments directory if it doesn't exist
+ensureDirectoryExists(DEPLOYMENTS_DIR);
+
+// Create debug directory if it doesn't exist
+ensureDirectoryExists(DEBUG_DIR);
 
 // Helper function to generate a random salt
 function generateRandomSalt(): string {
@@ -48,7 +80,7 @@ function generateRandomSalt(): string {
 
 // Main deployment function
 async function main(): Promise<void> {
-  console.log("Starting contract deployment with contract name matching fix...");
+  console.log("Starting contract deployment with debug directory fix...");
   
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");
@@ -98,16 +130,22 @@ async function main(): Promise<void> {
   }
   
   // Find and parse the starknet_artifacts.json file
-  const artifacts = findStarknetArtifacts();
-  
-  // Debug: Log all contract keys in the artifacts file
-  console.log("Available contracts in artifacts:");
-  if (artifacts && artifacts.contracts) {
-    Object.keys(artifacts.contracts).forEach(key => {
-      console.log(`  - ${key}`);
-    });
-  } else {
-    console.log("No contracts found in artifacts or artifacts structure is unexpected");
+  let artifacts;
+  try {
+    artifacts = findStarknetArtifacts();
+    
+    // Debug: Log all contract keys in the artifacts file
+    console.log("Available contracts in artifacts:");
+    if (artifacts && artifacts.contracts) {
+      Object.keys(artifacts.contracts).forEach(key => {
+        console.log(`  - ${key}`);
+      });
+    } else {
+      console.log("No contracts found in artifacts or artifacts structure is unexpected");
+    }
+  } catch (error) {
+    console.error("Failed to find or parse artifacts:", error);
+    throw error;
   }
   
   // Initialize deployments object with proper typing
@@ -175,8 +213,12 @@ async function main(): Promise<void> {
   
   // Save deployments
   const deploymentsPath = path.join(DEPLOYMENTS_DIR, "devnet_latest.json");
-  fs.writeFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
-  console.log(`Deployments saved to ${deploymentsPath}`);
+  const deploymentsWritten = safeWriteFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
+  if (deploymentsWritten) {
+    console.log(`Deployments saved to ${deploymentsPath}`);
+  } else {
+    console.warn(`Could not save deployments to ${deploymentsPath}`);
+  }
   
   // Check if any contracts were deployed
   const deployedContracts = Object.keys(deployments).filter(key => deployments[key as keyof Deployments]);
@@ -225,9 +267,9 @@ function findStarknetArtifacts(): any {
             console.log(`Found artifacts file: ${artifactPath}`);
             const artifactContent = fs.readFileSync(artifactPath, 'utf8');
             
-            // Save artifact content for debugging
-            const debugPath = path.resolve(__dirname, "../temp_debug/artifact_content.json");
-            fs.writeFileSync(debugPath, artifactContent);
+            // Save artifact content for debugging - using safe write that won't throw
+            const debugPath = path.join(DEBUG_DIR, "artifact_content.json");
+            safeWriteFileSync(debugPath, artifactContent);
             console.log(`Saved artifact content to ${debugPath} for debugging`);
             
             return JSON.parse(artifactContent);
@@ -235,7 +277,8 @@ function findStarknetArtifacts(): any {
         }
       }
     } catch (error) {
-      console.error(`Error checking directory ${dir}:`, error);
+      console.warn(`Warning: Error checking directory ${dir}:`, error);
+      // Continue checking other directories
     }
   }
   
