@@ -19,6 +19,12 @@ COPY Scarb.toml /app/
 RUN scarb --version && scarb build
 # Debug: List all generated artifacts (with || true to prevent build failure if no files found)
 RUN find /app -name "*.json" | grep -i contract || true
+
+# Create a new stage for deployment
+FROM node:20-alpine
+WORKDIR /app
+# Copy the built artifacts from the builder stage
+COPY --from=builder /app/target /app/target
 # Copy package files for deployment scripts
 COPY scripts/package.json scripts/tsconfig.json /app/scripts/
 # Install script dependencies
@@ -28,4 +34,5 @@ RUN npm install
 COPY scripts/deploy.ts /app/scripts/
 # Set the entrypoint
 WORKDIR /app
-CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]
+# Debug: List target directory contents before running deployment
+CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.json' && cd /app/scripts && npm run deploy"]
