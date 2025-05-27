@@ -1,7 +1,7 @@
-// DEPLOY SCRIPT VERSION 2.1 - TYPESCRIPT FIXES
-console.log("Running deployment script v2.1 with TypeScript fixes");
+// DEPLOY SCRIPT VERSION 2.2 - PROVIDER TYPE FIX
+console.log("Running deployment script v2.2 with Provider type fix");
 
-import { Account, Contract, ec, json, stark, Provider, hash, CallData, RpcProvider } from "starknet";
+import { Account, Contract, ec, json, stark, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -38,7 +38,7 @@ function generateRandomSalt(): string {
 
 // Main deployment function
 async function main(): Promise<void> {
-  console.log("Starting contract deployment with TypeScript fixes...");
+  console.log("Starting contract deployment with Provider type fix...");
   
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");
@@ -175,7 +175,7 @@ function findStarknetArtifacts(): any {
 }
 
 // Helper function to deploy a contract
-async function deployContract(account: Account, provider: Provider, contractType: string): Promise<DeploymentResult> {
+async function deployContract(account: Account, provider: RpcProvider, contractType: string): Promise<DeploymentResult> {
   try {
     // Find and parse the starknet_artifacts.json file
     const artifacts = findStarknetArtifacts();
