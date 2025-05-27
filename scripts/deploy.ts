@@ -1,4 +1,6 @@
-// Updated deployment script to handle Scarb's actual artifact structure
+// DEPLOY SCRIPT VERSION 2.0 - ARTIFACT STRUCTURE FIX
+console.log("Running deployment script v2.0 with artifact structure fix");
+
 import { Account, Contract, ec, json, stark, Provider, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
 import path from "path";
@@ -20,7 +22,7 @@ function generateRandomSalt() {
 
 // Main deployment function
 async function main() {
-  console.log("Starting contract deployment...");
+  console.log("Starting contract deployment with artifact structure fix...");
   
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");

@@ -30,9 +30,11 @@ COPY scripts/package.json scripts/tsconfig.json /app/scripts/
 # Install script dependencies
 WORKDIR /app/scripts
 RUN npm install
-# Copy the deployment script
-COPY scripts/deploy.ts /app/scripts/
-# Set the entrypoint
+# Copy the deployment script - MOVED TO END TO PREVENT CACHE ISSUES
 WORKDIR /app
 # Debug: List target directory contents before running deployment
 CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.json' && cd /app/scripts && npm run deploy"]
+
+# IMPORTANT: Copy the deployment script at the very end to ensure the latest version is used
+# This prevents Docker cache issues from using an old version of the script
+COPY scripts/deploy.ts /app/scripts/
