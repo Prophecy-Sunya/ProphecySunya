@@ -8,7 +8,45 @@ cairo-version = "2.4.0"
 starknet = ">=2.4.0"
 shared = { path = "contracts/shared" }
 
+# Main contract target configuration
 [[target.starknet-contract]]
+sierra = true
+casm = true
+
+# Explicit contract targets
+[[target.starknet-contract]]
+name = "prophecy_sunya_prediction"
+path = "contracts/prediction/src/prediction_contract.cairo"
+sierra = true
+casm = true
+
+[[target.starknet-contract]]
+name = "prophecy_sunya_nft"
+path = "contracts/nft/src/nft_contract.cairo"
+sierra = true
+casm = true
+
+[[target.starknet-contract]]
+name = "prophecy_sunya_gas_tank"
+path = "contracts/gas_tank/src/gas_tank_contract.cairo"
+sierra = true
+casm = true
+
+[[target.starknet-contract]]
+name = "prophecy_sunya_oracle"
+path = "contracts/oracle/src/oracle_contract.cairo"
+sierra = true
+casm = true
+
+[[target.starknet-contract]]
+name = "prophecy_sunya_governance"
+path = "contracts/governance/src/governance_contract.cairo"
+sierra = true
+casm = true
+
+[[target.starknet-contract]]
+name = "prophecy_sunya_bridge"
+path = "contracts/bridge/src/bridge_contract.cairo"
 sierra = true
 casm = true
 
