@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   # Starknet Devnet for local development
   starknet-devnet:
@@ -15,7 +14,6 @@ services:
       start_period: 5s
     networks:
       - starknet-network
-
   # Contract deployment service using TypeScript
   contract-deployer:
     build:
@@ -23,7 +21,7 @@ services:
       dockerfile: Dockerfile.deployer
     volumes:
       - ./deployments:/app/deployments
-      - ./target:/app/target  # Added volume mount for target directory
+      # Removed the target volume mount that was overriding built artifacts
     depends_on:
       starknet-devnet:
         condition: service_healthy
@@ -31,7 +29,6 @@ services:
       - STARKNET_DEVNET_URL=http://starknet-devnet:5050
     networks:
       - starknet-network
-
   # Frontend application
   frontend:
     build:
@@ -42,7 +39,7 @@ services:
       - "3000:3000"
     volumes:
       - ./deployments:/app/deployments:ro
-      - ./target:/app/target:ro  # Added volume mount for target directory
+      # Removed the target volume mount that was overriding built artifacts
     environment:
       - NEXT_PUBLIC_STARKNET_NETWORK=devnet
       - NEXT_PUBLIC_PROVIDER_URL=http://starknet-devnet:5050
@@ -57,7 +54,6 @@ services:
       start_period: 40s
     networks:
       - starknet-network
-
 networks:
   starknet-network:
     driver: bridge
