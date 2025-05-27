@@ -1,20 +1,19 @@
-// Root package lib.cairo
-// This file is required by Scarb for the root package
-// Re-export contract modules
-mod contracts {
-    // This is a placeholder that will be populated with actual exports
-    // when the contract structure is finalized
-    
-    // Import the shared module
-    mod shared {
-        // Re-export from the shared package
-        use shared::types;
-        use shared::interfaces;
-    }
+// ProphecySunya - Main library file
+// This file re-exports all contracts and modules
+
+// Contract modules
+mod prediction_contract;
+mod nft_contract;
+mod gas_tank_contract;
+mod oracle_contract;
+mod governance_contract;
+mod bridge_contract;
+
+// Shared modules
+mod types {
+    mod types;
 }
-// Export shared types and interfaces
-mod shared {
-    // Import from the shared package directly now that lib.cairo exists
-    use shared::types;
-    use shared::interfaces;
+
+mod interfaces {
+    mod interfaces;
 }

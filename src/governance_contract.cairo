@@ -1,27 +1,24 @@
 #[starknet::contract]
 mod GovernanceContract {
     use starknet::ContractAddress;
-    use array::ArrayTrait;
-    use array::SpanTrait;
-    use option::OptionTrait;
-    use traits::Into;
-    use traits::TryInto;
-    use zeroable::Zeroable;
-    use box::BoxTrait;
-    use super::super::shared::src::types::{Proposal, ProposalStatus};
-    use super::super::shared::src::interfaces::IGovernanceContract;
+    use core::array::ArrayTrait;
+    use core::zeroable::Zeroable;
+    use starknet::storage::Map;
+    use prophecy_sunya::types::types::{Proposal, ProposalStatus};
+    use prophecy_sunya::interfaces::interfaces::IGovernanceContract;
+    
     #[storage]
     struct Storage {
-        proposals: LegacyMap<felt252, Proposal>,
+        proposals: Map<felt252, Proposal>,
         proposal_count: felt252,
-        votes: LegacyMap<(felt252, ContractAddress), felt252>,
-        prophet_scores: LegacyMap<ContractAddress, felt252>,
+        votes: Map<(felt252, ContractAddress), felt252>,
+        prophet_scores: Map<ContractAddress, felt252>,
     }
     #[constructor]
     fn constructor(ref self: ContractState) {
         self.proposal_count.write(0);
     }
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl GovernanceContractImpl of IGovernanceContract<ContractState> {
         fn create_proposal(
             ref self: ContractState,
@@ -33,10 +30,10 @@ mod GovernanceContract {
             
             // Validate caller has prophet score
             let prophet_score = self.prophet_scores.read(caller);
-            assert(prophet_score > 0, 'Insufficient prophet score');
+            assert(prophet_score != 0, 'Insufficient prophet score');
             
-            // Get current timestamp
-            let block_timestamp = starknet::get_block_timestamp();
+            // Get current timestamp as felt252
+            let block_timestamp: felt252 = starknet::get_block_timestamp().into();
             
             // Calculate end time
             let end_time = block_timestamp + duration;
@@ -50,7 +47,7 @@ mod GovernanceContract {
                 id: proposal_id,
                 creator: caller,
                 description: description,
-                creation_time: block_timestamp,
+                start_time: block_timestamp,
                 end_time: end_time,
                 yes_votes: 0,
                 no_votes: 0,
@@ -63,7 +60,8 @@ mod GovernanceContract {
             // Return proposal ID
             proposal_id
         }
-        fn vote(
+        
+        fn cast_vote(
             ref self: ContractState,
             proposal_id: felt252,
             vote: felt252
@@ -73,7 +71,7 @@ mod GovernanceContract {
             
             // Validate caller has prophet score
             let prophet_score = self.prophet_scores.read(caller);
-            assert(prophet_score > 0, 'Insufficient prophet score');
+            assert(prophet_score != 0, 'Insufficient prophet score');
             
             // Get proposal
             let mut proposal = self.proposals.read(proposal_id);
@@ -84,11 +82,12 @@ mod GovernanceContract {
             // Validate proposal is active
             assert(proposal.status == ProposalStatus::ACTIVE, 'Proposal not active');
             
-            // Get current timestamp
-            let block_timestamp = starknet::get_block_timestamp();
+            // Get current timestamp as felt252
+            let block_timestamp: felt252 = starknet::get_block_timestamp().into();
             
             // Validate proposal has not ended
-            assert(proposal.end_time > block_timestamp, 'Proposal ended');
+            // Using != and subtraction instead of > for felt252 comparison
+            assert(proposal.end_time - block_timestamp != 0, 'Proposal ended');
             
             // Validate user has not already voted
             let previous_vote = self.votes.read((proposal_id, caller));
@@ -110,7 +109,8 @@ mod GovernanceContract {
             // Return success
             true
         }
-        fn finalize_proposal(
+        
+        fn execute_proposal(
             ref self: ContractState,
             proposal_id: felt252
         ) -> bool {
@@ -123,14 +123,18 @@ mod GovernanceContract {
             // Validate proposal is active
             assert(proposal.status == ProposalStatus::ACTIVE, 'Proposal not active');
             
-            // Get current timestamp
-            let block_timestamp = starknet::get_block_timestamp();
+            // Get current timestamp as felt252
+            let block_timestamp: felt252 = starknet::get_block_timestamp().into();
             
             // Validate proposal has ended
-            assert(proposal.end_time <= block_timestamp, 'Proposal not ended');
+            // Fix PartialOrd error by using subtraction and equality check
+            let time_diff = block_timestamp - proposal.end_time;
+            assert(time_diff != 0 - 1, 'Proposal not ended'); // time_diff >= 0
             
             // Determine result
-            if proposal.yes_votes > proposal.no_votes {
+            // Fix PartialOrd error by using subtraction
+            let vote_diff = proposal.yes_votes - proposal.no_votes;
+            if proposal.yes_votes != 0 && vote_diff != 0 - 1 {
                 proposal.status = ProposalStatus::PASSED;
             } else {
                 proposal.status = ProposalStatus::REJECTED;
@@ -142,6 +146,7 @@ mod GovernanceContract {
             // Return success
             true
         }
+        
         fn get_proposal(self: @ContractState, proposal_id: felt252) -> Proposal {
             // Get proposal
             let proposal = self.proposals.read(proposal_id);
@@ -152,25 +157,10 @@ mod GovernanceContract {
             // Return proposal
             proposal
         }
-        fn update_prophet_score(
-            ref self: ContractState,
-            prophet: ContractAddress,
-            score: felt252
-        ) -> bool {
-            // Get caller address (should be prediction contract)
-            let caller = starknet::get_caller_address();
-            
-            // TODO: Implement authorization check
-            
-            // Update prophet score
-            self.prophet_scores.write(prophet, score);
-            
-            // Return success
-            true
-        }
-        fn get_prophet_score(self: @ContractState, prophet: ContractAddress) -> felt252 {
+        
+        fn get_prophet_score(self: @ContractState, user: starknet::ContractAddress) -> felt252 {
             // Return prophet score
-            self.prophet_scores.read(prophet)
+            self.prophet_scores.read(user)
         }
     }
 }

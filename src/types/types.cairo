@@ -1,7 +1,9 @@
 // ProphecySunya Shared Types
 // This file contains common data structures used across contracts
 
-#[derive(Drop, Serde)]
+use starknet::ContractAddress;
+
+#[derive(Drop, Serde, starknet::Store)]
 struct Prediction {
     id: felt252,
     creator: starknet::ContractAddress,
@@ -13,7 +15,7 @@ struct Prediction {
     nft_id: felt252,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, starknet::Store)]
 struct Verification {
     id: felt252,
     prediction_id: felt252,
@@ -23,7 +25,7 @@ struct Verification {
     evidence_hash: felt252,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, starknet::Store)]
 struct Token {
     id: felt252,
     owner: starknet::ContractAddress,
@@ -33,7 +35,7 @@ struct Token {
     prophet_score: felt252,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, starknet::Store)]
 struct Proposal {
     id: felt252,
     creator: starknet::ContractAddress,
@@ -45,7 +47,7 @@ struct Proposal {
     no_votes: felt252,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, starknet::Store)]
 struct BridgedPrediction {
     id: felt252,
     source_chain: felt252,
