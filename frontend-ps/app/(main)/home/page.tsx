@@ -110,16 +110,15 @@ export default function HomePage() {
             <Card className="bg-default/5 backdrop-blur-md border border-default-400/20">
               <CardBody className="p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex items-center gap-2">
-                    <ArrowTrendingUpIcon className="w-5 h-5 text-success" />
-                    <h3 className="text-lg font-semibold text-default-600">
-                      Activity
-                    </h3>
-                    <Chip
-                      size="sm"
-                      className="bg-green-500/20 text-green-300 text-xs"
-                    >
-                      🟢 LIVE
+                  <div className="flex items-center justify-between  w-full">
+                    <div className="flex items-center gap-2">
+                      <ArrowTrendingUpIcon className="w-5 h-5 text-success" />
+                      <h3 className="text-lg font-semibold text-default-600">
+                        Activity
+                      </h3>
+                    </div>
+                    <Chip size="sm" color="success" variant="dot">
+                      LIVE
                     </Chip>
                   </div>
                 </div>
