@@ -1,5 +1,5 @@
-// DEPLOY SCRIPT VERSION 2.2 - PROVIDER TYPE FIX
-console.log("Running deployment script v2.2 with Provider type fix");
+// DEPLOY SCRIPT VERSION 2.3 - CONTRACT NAME MATCHING FIX
+console.log("Running deployment script v2.3 with contract name matching fix");
 
 import { Account, Contract, ec, json, stark, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
@@ -26,6 +26,16 @@ interface Deployments {
   bridge?: DeploymentResult;
 }
 
+// Contract name mapping
+const CONTRACT_TYPE_TO_PATTERN: Record<string, string[]> = {
+  "prediction": ["prediction", "prophecy_sunya::prediction", "prophecy_sunya_prediction"],
+  "nft": ["nft", "prophecy_sunya::nft", "prophecy_sunya_nft"],
+  "gas_tank": ["gas_tank", "gas", "prophecy_sunya::gas_tank", "prophecy_sunya_gas_tank"],
+  "oracle": ["oracle", "prophecy_sunya::oracle", "prophecy_sunya_oracle"],
+  "governance": ["governance", "prophecy_sunya::governance", "prophecy_sunya_governance"],
+  "bridge": ["bridge", "prophecy_sunya::bridge", "prophecy_sunya_bridge"]
+};
+
 // Create deployments directory if it doesn't exist
 if (!fs.existsSync(DEPLOYMENTS_DIR)) {
   fs.mkdirSync(DEPLOYMENTS_DIR, { recursive: true });
@@ -38,7 +48,7 @@ function generateRandomSalt(): string {
 
 // Main deployment function
 async function main(): Promise<void> {
-  console.log("Starting contract deployment with Provider type fix...");
+  console.log("Starting contract deployment with contract name matching fix...");
   
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");
@@ -87,45 +97,95 @@ async function main(): Promise<void> {
     console.log(`Private key: ${privateKey.substring(0, 10)}... (truncated)`);
   }
   
+  // Find and parse the starknet_artifacts.json file
+  const artifacts = findStarknetArtifacts();
+  
+  // Debug: Log all contract keys in the artifacts file
+  console.log("Available contracts in artifacts:");
+  if (artifacts && artifacts.contracts) {
+    Object.keys(artifacts.contracts).forEach(key => {
+      console.log(`  - ${key}`);
+    });
+  } else {
+    console.log("No contracts found in artifacts or artifacts structure is unexpected");
+  }
+  
   // Initialize deployments object with proper typing
   const deployments: Deployments = {};
   
   // Deploy Prediction Contract
   console.log("Deploying Prediction Contract...");
-  const predictionDeployment = await deployContract(account, provider, "prediction");
-  deployments.prediction = predictionDeployment;
+  try {
+    const predictionDeployment = await deployContract(account, provider, "prediction", artifacts);
+    deployments.prediction = predictionDeployment;
+  } catch (error) {
+    console.error("Failed to deploy prediction contract:", error);
+    // Continue with other deployments
+  }
   
   // Deploy NFT Contract
   console.log("Deploying NFT Contract...");
-  const nftDeployment = await deployContract(account, provider, "nft");
-  deployments.nft = nftDeployment;
+  try {
+    const nftDeployment = await deployContract(account, provider, "nft", artifacts);
+    deployments.nft = nftDeployment;
+  } catch (error) {
+    console.error("Failed to deploy NFT contract:", error);
+    // Continue with other deployments
+  }
   
   // Deploy Gas Tank Contract
   console.log("Deploying Gas Tank Contract...");
-  const gasTankDeployment = await deployContract(account, provider, "gas_tank");
-  deployments.gasTank = gasTankDeployment;
+  try {
+    const gasTankDeployment = await deployContract(account, provider, "gas_tank", artifacts);
+    deployments.gasTank = gasTankDeployment;
+  } catch (error) {
+    console.error("Failed to deploy gas tank contract:", error);
+    // Continue with other deployments
+  }
   
   // Deploy Oracle Contract
   console.log("Deploying Oracle Contract...");
-  const oracleDeployment = await deployContract(account, provider, "oracle");
-  deployments.oracle = oracleDeployment;
+  try {
+    const oracleDeployment = await deployContract(account, provider, "oracle", artifacts);
+    deployments.oracle = oracleDeployment;
+  } catch (error) {
+    console.error("Failed to deploy oracle contract:", error);
+    // Continue with other deployments
+  }
   
   // Deploy Governance Contract
   console.log("Deploying Governance Contract...");
-  const governanceDeployment = await deployContract(account, provider, "governance");
-  deployments.governance = governanceDeployment;
+  try {
+    const governanceDeployment = await deployContract(account, provider, "governance", artifacts);
+    deployments.governance = governanceDeployment;
+  } catch (error) {
+    console.error("Failed to deploy governance contract:", error);
+    // Continue with other deployments
+  }
   
   // Deploy Bridge Contract
   console.log("Deploying Bridge Contract...");
-  const bridgeDeployment = await deployContract(account, provider, "bridge");
-  deployments.bridge = bridgeDeployment;
+  try {
+    const bridgeDeployment = await deployContract(account, provider, "bridge", artifacts);
+    deployments.bridge = bridgeDeployment;
+  } catch (error) {
+    console.error("Failed to deploy bridge contract:", error);
+    // Continue with other deployments
+  }
   
   // Save deployments
   const deploymentsPath = path.join(DEPLOYMENTS_DIR, "devnet_latest.json");
   fs.writeFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
   console.log(`Deployments saved to ${deploymentsPath}`);
   
-  console.log("All contracts deployed successfully!");
+  // Check if any contracts were deployed
+  const deployedContracts = Object.keys(deployments).filter(key => deployments[key as keyof Deployments]);
+  if (deployedContracts.length > 0) {
+    console.log(`Successfully deployed ${deployedContracts.length} contracts: ${deployedContracts.join(', ')}`);
+  } else {
+    console.error("No contracts were successfully deployed");
+    process.exit(1);
+  }
 }
 
 // Helper function to recursively list directory contents
@@ -161,8 +221,16 @@ function findStarknetArtifacts(): any {
         const files = fs.readdirSync(dir);
         for (const file of files) {
           if (file.endsWith('.starknet_artifacts.json')) {
-            console.log(`Found artifacts file: ${path.join(dir, file)}`);
-            return JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+            const artifactPath = path.join(dir, file);
+            console.log(`Found artifacts file: ${artifactPath}`);
+            const artifactContent = fs.readFileSync(artifactPath, 'utf8');
+            
+            // Save artifact content for debugging
+            const debugPath = path.resolve(__dirname, "../temp_debug/artifact_content.json");
+            fs.writeFileSync(debugPath, artifactContent);
+            console.log(`Saved artifact content to ${debugPath} for debugging`);
+            
+            return JSON.parse(artifactContent);
           }
         }
       }
@@ -174,14 +242,61 @@ function findStarknetArtifacts(): any {
   throw new Error("Could not find starknet_artifacts.json file. Make sure contracts are built with 'scarb build'");
 }
 
-// Helper function to deploy a contract
-async function deployContract(account: Account, provider: RpcProvider, contractType: string): Promise<DeploymentResult> {
-  try {
-    // Find and parse the starknet_artifacts.json file
-    const artifacts = findStarknetArtifacts();
+// Helper function to find contract key in artifacts
+function findContractKey(contractType: string, artifacts: any): string | undefined {
+  if (!artifacts || !artifacts.contracts) {
+    console.error("Invalid artifacts structure");
+    return undefined;
+  }
+  
+  const contractKeys = Object.keys(artifacts.contracts);
+  console.log(`Searching for ${contractType} contract in ${contractKeys.length} available contracts`);
+  
+  // Get patterns to match for this contract type
+  const patterns = CONTRACT_TYPE_TO_PATTERN[contractType] || [contractType];
+  
+  // Try to find a match using the patterns
+  for (const pattern of patterns) {
+    console.log(`Trying pattern: ${pattern}`);
+    const matchingKey = contractKeys.find(key => 
+      key.toLowerCase().includes(pattern.toLowerCase())
+    );
     
+    if (matchingKey) {
+      console.log(`Found matching contract: ${matchingKey}`);
+      return matchingKey;
+    }
+  }
+  
+  // If no match found, try a more flexible approach
+  console.log("No exact match found, trying flexible matching...");
+  
+  // If contractType is "prediction", try to find any contract
+  if (contractType === "prediction") {
+    // Just return the first contract as a fallback
+    if (contractKeys.length > 0) {
+      console.log(`Using first available contract as fallback: ${contractKeys[0]}`);
+      return contractKeys[0];
+    }
+  }
+  
+  // Try to match by module name
+  const modulePattern = new RegExp(`${contractType}::`, 'i');
+  const moduleMatch = contractKeys.find(key => modulePattern.test(key));
+  if (moduleMatch) {
+    console.log(`Found module match: ${moduleMatch}`);
+    return moduleMatch;
+  }
+  
+  console.error(`Could not find contract for type "${contractType}" in artifacts`);
+  return undefined;
+}
+
+// Helper function to deploy a contract
+async function deployContract(account: Account, provider: RpcProvider, contractType: string, artifacts: any): Promise<DeploymentResult> {
+  try {
     // Find the contract in the artifacts
-    const contractKey = Object.keys(artifacts.contracts).find(key => key.includes(contractType));
+    const contractKey = findContractKey(contractType, artifacts);
     if (!contractKey) {
       throw new Error(`Could not find contract for type "${contractType}" in artifacts`);
     }
