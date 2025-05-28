@@ -19,23 +19,14 @@ COPY contracts/ /app/contracts/
 COPY src/ /app/src/
 COPY Scarb.toml /app/
 
-# Debug: Show Scarb.toml content
-RUN echo "Scarb.toml content:" && cat /app/Scarb.toml
-
-# Build Cairo contracts with verbose output
-RUN scarb --version && scarb build --verbose
-
-# Debug: List all generated artifacts
-RUN echo "Generated artifacts:" && \
-    find /app/target -type f | sort && \
-    echo "Artifact file contents:" && \
-    find /app/target -name "*.json" -exec cat {} \; || echo "No JSON files found"
+# Build Cairo contracts (minimal output)
+RUN scarb build
 
 # Create a new stage for deployment
 FROM node:20-alpine
 WORKDIR /app
 
-# Install dependencies for debugging
+# Install dependencies for deployment
 RUN apk add --no-cache jq
 
 # Copy the built artifacts from the builder stage
@@ -54,15 +45,8 @@ RUN npm install
 # Copy the deployment script
 WORKDIR /app
 
-# Debug: Examine artifact file before deployment
-RUN echo "Preparing for deployment..." && \
-    echo "Target directory structure:" && \
-    find /app/target -type f | sort && \
-    echo "Checking for artifact file:" && \
-    find /app/target -name "*.json" -exec sh -c 'echo "Found JSON file: {}"; cat {} | jq "." || echo "Not valid JSON: {}"' \;
-
 # Copy the deployment script at the very end
 COPY scripts/deploy.ts /app/scripts/
 
-# Run deployment with debug output
-CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.json' -exec sh -c 'echo \"Contents of {}\"; cat {} | jq \".\" || cat {}' \\; && cd /app/scripts && npm run deploy"]
+# Run deployment with minimal output
+CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]

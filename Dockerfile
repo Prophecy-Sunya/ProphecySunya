@@ -36,7 +36,6 @@ RUN mkdir -p /tmp/scarb && \
   tar -xzf scarb-v${SCARB_VERSION}-x86_64-unknown-linux-gnu.tar.gz && \
   mv scarb-v${SCARB_VERSION}-x86_64-unknown-linux-gnu /usr/local/scarb && \
   ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
-  scarb --version && \
   mkdir -p /root/.scarb && \
   rm -rf /tmp/scarb
 
@@ -69,7 +68,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Starkli with explicit version and verify installation
+# Install Starkli with explicit version
 RUN mkdir -p /tmp/starkli && \
     cd /tmp/starkli && \
     curl -L https://github.com/xJonathanLEI/starkli/releases/download/v0.1.9/starkli-x86_64-unknown-linux-gnu.tar.gz -o starkli.tar.gz && \
@@ -77,8 +76,7 @@ RUN mkdir -p /tmp/starkli && \
     mkdir -p /usr/local/bin && \
     cp starkli /usr/local/bin/ && \
     chmod +x /usr/local/bin/starkli && \
-    rm -rf /tmp/starkli && \
-    starkli --version
+    rm -rf /tmp/starkli
 
 # Install Node.js from NodeSource repository
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
@@ -93,8 +91,7 @@ WORKDIR /app
 COPY --from=builder /root/.cargo /root/.cargo
 COPY --from=builder /usr/local/scarb /usr/local/scarb
 RUN ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
-  mkdir -p /root/.scarb && \
-  scarb --version || echo "Scarb installation verification failed"
+  mkdir -p /root/.scarb
 
 # Copy package.json and install dependencies first to leverage Docker cache
 COPY frontend/package.json /app/frontend/
@@ -117,7 +114,7 @@ RUN apt-get update && apt-get install -y dos2unix && \
     rm -rf /var/lib/apt/lists/*
 
 # Build the contracts
-RUN scarb --version && scarb build || echo "Scarb build failed, continuing anyway"
+RUN scarb build
 
 # Set entrypoint script
 RUN echo '#!/bin/bash\n\
