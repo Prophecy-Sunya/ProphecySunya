@@ -1,43 +1,42 @@
-FROM ghcr.io/foundry-rs/foundry:latest as foundry
-FROM node:18 as deployer
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    pkg-config \
-    libssl-dev \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
-# Install Rust and Cargo
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-# Install Scarb directly (without using the installer script)
-RUN mkdir -p /usr/local/scarb && \
-    wget -q https://github.com/software-mansion/scarb/releases/download/v2.11.4/scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz && \
-    tar -xzf scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/scarb --strip-components=1 && \
-    rm scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz && \
-    ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb
-# Verify Scarb installation
-RUN scarb --version
-# Set up working directory
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Copy package.json and install dependencies
-COPY scripts/package.json scripts/
-RUN cd scripts && npm install
-
-# Copy the rest of the application
-COPY . .
-
-# Build the contracts first - THIS IS THE KEY FIX
+# Install dependencies for building
+RUN apk add --no-cache python3 make g++ git bash curl
+# Install Scarb for Cairo contracts
+ENV SCARB_VERSION=2.11.4
+RUN mkdir -p /tmp/scarb && \
+    cd /tmp/scarb && \
+    curl -L https://github.com/software-mansion/scarb/releases/download/v${SCARB_VERSION}/scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl.tar.gz -o scarb.tar.gz && \
+    tar -xzf scarb.tar.gz && \
+    mv scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl /usr/local/scarb && \
+    ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
+    rm -rf /tmp/scarb
+# Copy Cairo contracts and Scarb.toml for building
+COPY contracts/ /app/contracts/
+COPY src/ /app/src/
+COPY Scarb.toml /app/
+# Build Cairo contracts (minimal output)
 RUN scarb build
-
 # Verify build artifacts exist
 RUN ls -la target/dev || (echo "Build failed to generate artifacts" && exit 1)
 
-## Set up the entrypoint
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-# Default command
-CMD ["deploy"]
+# Create a new stage for deployment
+FROM node:20-alpine
+WORKDIR /app
+# Install dependencies for deployment
+RUN apk add --no-cache jq
+# Copy the built artifacts from the builder stage
+COPY --from=builder /app/target /app/target
+# Create debug directory
+RUN mkdir -p /app/temp_debug
+# Copy package files for deployment scripts
+COPY scripts/package.json scripts/tsconfig.json /app/scripts/
+# Install script dependencies
+WORKDIR /app/scripts
+RUN npm install
+# Copy the deployment script
+WORKDIR /app
+# Copy the deployment script at the very end
+COPY scripts/deploy.ts /app/scripts/
+# Run deployment with minimal output
+CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]]
