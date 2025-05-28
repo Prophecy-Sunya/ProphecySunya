@@ -1,5 +1,5 @@
-// DEPLOY SCRIPT VERSION 2.5 - MINIMAL LOGGING
-// Minimal logging version for production deployment
+// DEPLOY SCRIPT VERSION 2.6 - MINIMAL LOGGING WITH ERROR REPORTING
+// Minimal logging version for production deployment with essential error reporting
 
 import { Account, Contract, ec, json, stark, hash, CallData, RpcProvider } from "starknet";
 import fs from "fs";
@@ -41,10 +41,11 @@ const CONTRACT_TYPE_TO_PATTERN: Record<string, string[]> = {
 function ensureDirectoryExists(dirPath: string): void {
   try {
     if (!fs.existsSync(dirPath)) {
+      console.log(`Creating directory: ${dirPath}`);
       fs.mkdirSync(dirPath, { recursive: true });
     }
   } catch (error) {
-    // Continue execution even if directory creation fails
+    console.error(`Error creating directory ${dirPath}: ${error}`);
   }
 }
 
@@ -57,8 +58,10 @@ function safeWriteFileSync(filePath: string, content: string): boolean {
     
     // Write the file
     fs.writeFileSync(filePath, content);
+    console.log(`Successfully wrote file: ${filePath}`);
     return true;
   } catch (error) {
+    console.error(`Error writing file ${filePath}: ${error}`);
     return false;
   }
 }
@@ -76,16 +79,21 @@ function generateRandomSalt(): string {
 
 // Main deployment function
 async function main(): Promise<void> {
+  console.log("Starting contract deployment...");
+  
   // Check if target directory exists
   const targetDir = path.resolve(__dirname, "../target");
   if (!fs.existsSync(targetDir)) {
-    throw new Error("Target directory not found. Make sure contracts are built with 'scarb build'");
+    console.error("Target directory not found. Make sure contracts are built with 'scarb build'");
+    throw new Error("Target directory not found");
   }
   
   // Connect to Starknet provider
+  console.log(`Connecting to Starknet node at ${STARKNET_DEVNET_URL}...`);
   const provider = new RpcProvider({ nodeUrl: STARKNET_DEVNET_URL });
   
   // Get pre-funded account from Devnet
+  console.log("Fetching pre-funded accounts from Devnet...");
   let account: Account;
   try {
     const response = await fetch(`${STARKNET_DEVNET_URL}/predeployed_accounts`);
@@ -95,6 +103,7 @@ async function main(): Promise<void> {
       if (predeployedAccounts && predeployedAccounts.length > 0) {
         const accountData = predeployedAccounts[0];
         account = new Account(provider, accountData.address, accountData.private_key);
+        console.log(`Using account: ${accountData.address}`);
       } else {
         throw new Error("No accounts found in response");
       }
@@ -102,17 +111,21 @@ async function main(): Promise<void> {
       throw new Error(`Failed to fetch accounts: ${response.statusText}`);
     }
   } catch (error) {
+    console.log("Using fallback account due to error:", error);
     // Use fallback account
     const privateKey = "0x71d7bb07b9a64f6f78ac4c816aff4da9";
     const accountAddress = "0x64b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691";
     account = new Account(provider, accountAddress, privateKey);
+    console.log(`Using fallback account: ${accountAddress}`);
   }
   
   // Find and parse the starknet_artifacts.json file
   let artifacts;
   try {
     artifacts = findStarknetArtifacts();
+    console.log("Successfully loaded contract artifacts");
   } catch (error) {
+    console.error("Failed to find or parse artifacts:", error);
     throw error;
   }
   
@@ -120,60 +133,86 @@ async function main(): Promise<void> {
   const deployments: Deployments = {};
   
   // Deploy Prediction Contract
+  console.log("Deploying Prediction Contract...");
   try {
     const predictionDeployment = await deployContract(account, provider, "prediction", artifacts);
     deployments.prediction = predictionDeployment;
+    console.log(`Prediction Contract deployed at: ${predictionDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy prediction contract:", error);
     // Continue with other deployments
   }
   
   // Deploy NFT Contract
+  console.log("Deploying NFT Contract...");
   try {
     const nftDeployment = await deployContract(account, provider, "nft", artifacts);
     deployments.nft = nftDeployment;
+    console.log(`NFT Contract deployed at: ${nftDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy NFT contract:", error);
     // Continue with other deployments
   }
   
   // Deploy Gas Tank Contract
+  console.log("Deploying Gas Tank Contract...");
   try {
     const gasTankDeployment = await deployContract(account, provider, "gas_tank", artifacts);
     deployments.gasTank = gasTankDeployment;
+    console.log(`Gas Tank Contract deployed at: ${gasTankDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy gas tank contract:", error);
     // Continue with other deployments
   }
   
   // Deploy Oracle Contract
+  console.log("Deploying Oracle Contract...");
   try {
     const oracleDeployment = await deployContract(account, provider, "oracle", artifacts);
     deployments.oracle = oracleDeployment;
+    console.log(`Oracle Contract deployed at: ${oracleDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy oracle contract:", error);
     // Continue with other deployments
   }
   
   // Deploy Governance Contract
+  console.log("Deploying Governance Contract...");
   try {
     const governanceDeployment = await deployContract(account, provider, "governance", artifacts);
     deployments.governance = governanceDeployment;
+    console.log(`Governance Contract deployed at: ${governanceDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy governance contract:", error);
     // Continue with other deployments
   }
   
   // Deploy Bridge Contract
+  console.log("Deploying Bridge Contract...");
   try {
     const bridgeDeployment = await deployContract(account, provider, "bridge", artifacts);
     deployments.bridge = bridgeDeployment;
+    console.log(`Bridge Contract deployed at: ${bridgeDeployment.address}`);
   } catch (error) {
+    console.error("Failed to deploy bridge contract:", error);
     // Continue with other deployments
   }
   
   // Save deployments
   const deploymentsPath = path.join(DEPLOYMENTS_DIR, "devnet_latest.json");
-  safeWriteFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
+  const deploymentsWritten = safeWriteFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
+  if (deploymentsWritten) {
+    console.log(`Deployments saved to ${deploymentsPath}`);
+  } else {
+    console.warn(`Could not save deployments to ${deploymentsPath}`);
+  }
   
   // Check if any contracts were deployed
   const deployedContracts = Object.keys(deployments).filter(key => deployments[key as keyof Deployments]);
-  if (deployedContracts.length === 0) {
+  if (deployedContracts.length > 0) {
+    console.log(`Successfully deployed ${deployedContracts.length} contracts: ${deployedContracts.join(', ')}`);
+  } else {
+    console.error("No contracts were successfully deployed");
     process.exit(1);
   }
 }
@@ -194,12 +233,19 @@ function findStarknetArtifacts(): any {
         for (const file of files) {
           if (file.endsWith('.starknet_artifacts.json')) {
             const artifactPath = path.join(dir, file);
+            console.log(`Found artifacts file: ${artifactPath}`);
             const artifactContent = fs.readFileSync(artifactPath, 'utf8');
+            
+            // Save artifact content for debugging - using safe write that won't throw
+            const debugPath = path.join(DEBUG_DIR, "artifact_content.json");
+            safeWriteFileSync(debugPath, JSON.stringify(JSON.parse(artifactContent), null, 2));
+            
             return JSON.parse(artifactContent);
           }
         }
       }
     } catch (error) {
+      console.warn(`Warning: Error checking directory ${dir}:`, error);
       // Continue checking other directories
     }
   }
@@ -210,6 +256,7 @@ function findStarknetArtifacts(): any {
 // Helper function to find contract key in artifacts
 function findContractKey(contractType: string, artifacts: any): string | undefined {
   if (!artifacts || !artifacts.contracts) {
+    console.error("Invalid artifacts structure");
     return undefined;
   }
   
@@ -235,6 +282,7 @@ function findContractKey(contractType: string, artifacts: any): string | undefin
   if (contractType === "prediction") {
     // Just return the first contract as a fallback
     if (contractKeys.length > 0) {
+      console.log(`Using first available contract as fallback: ${contractKeys[0]}`);
       return contractKeys[0];
     }
   }
@@ -246,6 +294,7 @@ function findContractKey(contractType: string, artifacts: any): string | undefin
     return moduleMatch;
   }
   
+  console.error(`Could not find contract for type "${contractType}" in artifacts`);
   return undefined;
 }
 
@@ -258,6 +307,7 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
       throw new Error(`Could not find contract for type "${contractType}" in artifacts`);
     }
     
+    console.log(`Found contract in artifacts: ${contractKey}`);
     const contractArtifact = artifacts.contracts[contractKey];
     
     // Extract the Sierra and CASM artifacts
@@ -275,8 +325,10 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
       const classHash = hash.computeContractClassHash(compiledContractSierra);
       try {
         await provider.getClassByHash(classHash);
+        console.log(`Contract ${contractType} already declared with class hash: ${classHash}`);
       } catch (e) {
         // Contract not declared, declare it
+        console.log(`Declaring ${contractType} contract...`);
         declareResponse = await account.declare({
           contract: compiledContractSierra,
           casm: compiledContractCasm,
@@ -284,8 +336,10 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
         
         // Wait for transaction to be accepted
         await provider.waitForTransaction(declareResponse.transaction_hash);
+        console.log(`Contract ${contractType} declared with transaction hash: ${declareResponse.transaction_hash}`);
       }
     } catch (error) {
+      console.error(`Error declaring contract ${contractType}:`, error);
       throw error;
     }
     
@@ -295,6 +349,7 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
     // Deploy contract
     // Generate a random salt using crypto
     const salt = generateRandomSalt();
+    console.log(`Deploying ${contractType} contract...`);
     const deployResponse = await account.deployContract({
       classHash: declareResponse ? declareResponse.class_hash : hash.computeContractClassHash(compiledContractSierra),
       constructorCalldata,
@@ -310,13 +365,18 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
       transactionHash: deployResponse.transaction_hash,
     };
   } catch (error) {
+    console.error(`Error deploying contract ${contractType}:`, error);
     throw error;
   }
 }
 
 // Run the deployment
 main()
-  .then(() => process.exit(0))
+  .then(() => {
+    console.log("Deployment completed successfully");
+    process.exit(0);
+  })
   .catch((error) => {
+    console.error("Deployment failed:", error);
     process.exit(1);
   });
