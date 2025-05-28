@@ -1,9 +1,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
 # Install dependencies for building
 RUN apk add --no-cache python3 make g++ git bash curl
+
 # Install Scarb for Cairo contracts
-ENV SCARB_VERSION=2.4.0
+ENV SCARB_VERSION=2.11.4
 RUN mkdir -p /tmp/scarb && \
     cd /tmp/scarb && \
     curl -L https://github.com/software-mansion/scarb/releases/download/v${SCARB_VERSION}/scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl.tar.gz -o scarb.tar.gz && \
@@ -11,28 +13,54 @@ RUN mkdir -p /tmp/scarb && \
     mv scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl /usr/local/scarb && \
     ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
     rm -rf /tmp/scarb
+
 # Copy Cairo contracts and Scarb.toml for building
 COPY contracts/ /app/contracts/
 COPY src/ /app/src/
 COPY Scarb.toml /app/
-# Build Cairo contracts
-RUN scarb --version && scarb build
-# Debug: List all generated artifacts (with || true to prevent build failure if no files found)
-RUN find /app -name "*.json" | grep -i contract || true
+
+# Debug: Show Scarb.toml content
+RUN echo "Scarb.toml content:" && cat /app/Scarb.toml
+
+# Build Cairo contracts with verbose output
+RUN scarb --version && scarb build --verbose
+
+# Debug: List all generated artifacts (without printing their contents)
+RUN echo "Generated artifacts:" && \
+    find /app/target -type f | sort
 
 # Create a new stage for deployment
 FROM node:20-alpine
 WORKDIR /app
+
+# Install dependencies for debugging
+RUN apk add --no-cache jq
+
 # Copy the built artifacts from the builder stage
 COPY --from=builder /app/target /app/target
+
+# Create debug directory
+RUN mkdir -p /app/temp_debug
+
 # Copy package files for deployment scripts
 COPY scripts/package.json scripts/tsconfig.json /app/scripts/
+
 # Install script dependencies
 WORKDIR /app/scripts
 RUN npm install
+
 # Copy the deployment script
-COPY scripts/deploy.ts /app/scripts/
-# Set the entrypoint
 WORKDIR /app
-# Debug: List target directory contents before running deployment
-CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.json' && cd /app/scripts && npm run deploy"]
+
+# Debug: Examine artifact file structure before deployment (without printing full contents)
+RUN echo "Preparing for deployment..." && \
+    echo "Target directory structure:" && \
+    find /app/target -type f | sort && \
+    echo "Checking for artifact files:" && \
+    find /app/target -name "*.starknet_artifacts.json" -exec sh -c 'echo "Found artifact file: {}"; jq -r ".version, \"Contracts: \" + (.contracts | length | tostring)" {} || echo "Not valid JSON: {}"' \;
+
+# Copy the deployment script at the very end
+COPY scripts/deploy.ts /app/scripts/
+
+# Run deployment with minimal debug output
+CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.starknet_artifacts.json' -exec sh -c 'echo \"Found artifact file: {}\"; jq -r \".version, \\\"Contracts: \\\" + (.contracts | length | tostring)\" {}' \\; && cd /app/scripts && npm run deploy"]
