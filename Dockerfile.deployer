@@ -35,10 +35,9 @@ RUN scarb build
 # Verify build artifacts exist
 RUN ls -la target/dev || (echo "Build failed to generate artifacts" && exit 1)
 
-# Set up the entrypoint
-COPY docker-entrypoint.sh /usr/local/bin/
+## Set up the entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
-
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 # Default command
-CMD ["node", "scripts/deploy.js"] run deploy"]
+CMD ["deploy"]
