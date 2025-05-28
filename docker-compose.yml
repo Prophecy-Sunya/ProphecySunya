@@ -1,35 +1,33 @@
 version: '3.8'
-
 services:
   # Starknet Devnet for local development
   starknet-devnet:
-    image: starknetfoundation/starknet-dev:latest
+    image: shardlabs/starknet-devnet:latest
     ports:
       - "5050:5050"
-    command: starknet-devnet --host 0.0.0.0 --port 5050 --seed 42
+    command: --seed 42 --accounts 3
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/is_alive"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
     volumes:
       - starknet-devnet-data:/data
 
-  # Contract deployment service
+  # Contract deployment service with build step
   contract-deployer:
     build:
       context: .
-      dockerfile: Dockerfile
-    command: shell
-    entrypoint: ["/bin/bash", "/app/deploy-starkli.sh"]
+      dockerfile: Dockerfile.deployer
     volumes:
-      - contract-addresses:/app/contract-addresses
+      - ./contract-addresses:/app/contract-addresses
+      - ./target:/app/target
+    environment:
+      - STARKNET_NETWORK=devnet
+      - STARKNET_RPC_URL=http://starknet-devnet:5050
     depends_on:
       starknet-devnet:
         condition: service_healthy
-    environment:
-      - STARKNET_DEVNET_URL=http://starknet-devnet:5050
 
   # Frontend application
   frontend:
@@ -39,11 +37,9 @@ services:
     command: frontend
     ports:
       - "3000:3000"
-    # No volume mounts to prevent React duplication issues
     environment:
       - NEXT_PUBLIC_STARKNET_NETWORK=devnet
       - NEXT_PUBLIC_PROVIDER_URL=http://starknet-devnet:5050
-      # Contract addresses will be injected at runtime from the contract-addresses volume
     volumes:
       - contract-addresses:/app/contract-addresses:ro
     depends_on:
@@ -56,7 +52,6 @@ services:
       retries: 3
       start_period: 40s
     entrypoint: ["/bin/bash", "-c", "source /app/load-contract-addresses.sh && exec /entrypoint.sh frontend"]
-
 volumes:
   starknet-devnet-data:
-  contract-addresses:
+  contract-addresses:ses:
