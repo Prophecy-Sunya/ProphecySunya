@@ -1,66 +1,42 @@
-FROM node:20-alpine AS builder
+FROM ghcr.io/foundry-rs/foundry:latest as foundry
+
+FROM node:18 as deployer
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust and Cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install Scarb
+RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/install.sh | sh -s -- -v 2.11.4
+
+# Set up working directory
 WORKDIR /app
 
-# Install dependencies for building
-RUN apk add --no-cache python3 make g++ git bash curl
+# Copy package.json and install dependencies
+COPY scripts/package.json scripts/
+RUN cd scripts && npm install
 
-# Install Scarb for Cairo contracts
-ENV SCARB_VERSION=2.11.4
-RUN mkdir -p /tmp/scarb && \
-    cd /tmp/scarb && \
-    curl -L https://github.com/software-mansion/scarb/releases/download/v${SCARB_VERSION}/scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl.tar.gz -o scarb.tar.gz && \
-    tar -xzf scarb.tar.gz && \
-    mv scarb-v${SCARB_VERSION}-x86_64-unknown-linux-musl /usr/local/scarb && \
-    ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb && \
-    rm -rf /tmp/scarb
+# Copy the rest of the application
+COPY . .
 
-# Copy Cairo contracts and Scarb.toml for building
-COPY contracts/ /app/contracts/
-COPY src/ /app/src/
-COPY Scarb.toml /app/
+# Build the contracts first
+RUN scarb build
 
-# Debug: Show Scarb.toml content
-RUN echo "Scarb.toml content:" && cat /app/Scarb.toml
+# Verify build artifacts exist
+RUN ls -la target/dev || (echo "Build failed to generate artifacts" && exit 1)
 
-# Build Cairo contracts with verbose output
-RUN scarb --version && scarb build --verbose
+# Set up the entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
 
-# Debug: List all generated artifacts (without printing their contents)
-RUN echo "Generated artifacts:" && \
-    find /app/target -type f | sort
-
-# Create a new stage for deployment
-FROM node:20-alpine
-WORKDIR /app
-
-# Install dependencies for debugging
-RUN apk add --no-cache jq
-
-# Copy the built artifacts from the builder stage
-COPY --from=builder /app/target /app/target
-
-# Create debug directory
-RUN mkdir -p /app/temp_debug
-
-# Copy package files for deployment scripts
-COPY scripts/package.json scripts/tsconfig.json /app/scripts/
-
-# Install script dependencies
-WORKDIR /app/scripts
-RUN npm install
-
-# Copy the deployment script
-WORKDIR /app
-
-# Debug: Examine artifact file structure before deployment (without printing full contents)
-RUN echo "Preparing for deployment..." && \
-    echo "Target directory structure:" && \
-    find /app/target -type f | sort && \
-    echo "Checking for artifact files:" && \
-    find /app/target -name "*.starknet_artifacts.json" -exec sh -c 'echo "Found artifact file: {}"; jq -r ".version, \"Contracts: \" + (.contracts | length | tostring)" {} || echo "Not valid JSON: {}"' \;
-
-# Copy the deployment script at the very end
-COPY scripts/deploy.ts /app/scripts/
-
-# Run deployment with minimal debug output
-CMD ["sh", "-c", "echo 'Target directory contents:' && ls -la /app/target && find /app/target -type f -name '*.starknet_artifacts.json' -exec sh -c 'echo \"Found artifact file: {}\"; jq -r \".version, \\\"Contracts: \\\" + (.contracts | length | tostring)\" {}' \\; && cd /app/scripts && npm run deploy"]
+# Default command
+CMD ["node", "scripts/deploy.js"]
