@@ -39,4 +39,4 @@ WORKDIR /app
 # Copy the deployment script at the very end
 COPY scripts/deploy.ts /app/scripts/
 # Run deployment with minimal output
-CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]]
+CMD ["sh", "-c", "cd /app/scripts && npm run deploy"]
