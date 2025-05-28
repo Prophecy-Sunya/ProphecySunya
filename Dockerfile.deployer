@@ -6,14 +6,17 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     pkg-config \
     libssl-dev \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 # Install Rust and Cargo
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-# Install Scarb
-RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/software-mansion/scarb/main/install.sh | sh -s -- -v 2.11.4
-# Add Scarb to PATH - Fix for installation issue
-ENV PATH="/root/.local/bin:${PATH}"
+# Install Scarb directly (without using the installer script)
+RUN mkdir -p /usr/local/scarb && \
+    wget -q https://github.com/software-mansion/scarb/releases/download/v2.11.4/scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz && \
+    tar -xzf scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/scarb --strip-components=1 && \
+    rm scarb-v2.11.4-x86_64-unknown-linux-gnu.tar.gz && \
+    ln -s /usr/local/scarb/bin/scarb /usr/local/bin/scarb
 # Verify Scarb installation
 RUN scarb --version
 # Set up working directory
