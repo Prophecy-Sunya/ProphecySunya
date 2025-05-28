@@ -561,6 +561,38 @@ function findContractKey(contractType: string, artifacts: any): string | undefin
   return undefined;
 }
 
+// Helper function to load JSON from a file or parse a JSON string
+function loadOrParseJson(input: any): any {
+  // If input is already an object, return it
+  if (input !== null && typeof input === 'object') {
+    return input;
+  }
+  
+  // If input is a string, try to parse it as JSON
+  if (typeof input === 'string') {
+    try {
+      // Try to parse as JSON string
+      return JSON.parse(input);
+    } catch (e) {
+      // If it's not valid JSON, check if it's a file path
+      if (input.startsWith('/') && fs.existsSync(input)) {
+        try {
+          const fileContent = fs.readFileSync(input, 'utf8');
+          return JSON.parse(fileContent);
+        } catch (fileError) {
+          console.error(`Error loading JSON from file ${input}:`, fileError);
+          throw new Error(`Failed to load JSON from file: ${input}`);
+        }
+      } else {
+        console.error(`Error parsing JSON string:`, e);
+        throw new Error(`Invalid JSON format: ${input.substring(0, 50)}...`);
+      }
+    }
+  }
+  
+  throw new Error(`Unsupported input type for JSON parsing: ${typeof input}`);
+}
+
 // Helper function to extract Sierra and CASM artifacts from different artifact structures
 function extractSierraAndCasm(contractArtifact: any): { sierra: any, casm: any } | null {
   // Save contract artifact for debugging
@@ -568,48 +600,39 @@ function extractSierraAndCasm(contractArtifact: any): { sierra: any, casm: any }
   safeWriteFileSync(debugPath, JSON.stringify(contractArtifact, null, 2));
   console.log(`Saved contract artifact structure to ${debugPath} for debugging`);
   
+  let sierraData = null;
+  let casmData = null;
+  
   // Check for direct sierra and casm fields (original expected structure)
   if (contractArtifact.sierra && contractArtifact.casm) {
     console.log("Found direct sierra and casm fields in artifact");
-    return {
-      sierra: contractArtifact.sierra,
-      casm: contractArtifact.casm
-    };
+    sierraData = contractArtifact.sierra;
+    casmData = contractArtifact.casm;
   }
-  
   // Check for sierra_program and casm_program fields (alternative names)
-  if (contractArtifact.sierra_program && contractArtifact.casm_program) {
+  else if (contractArtifact.sierra_program && contractArtifact.casm_program) {
     console.log("Found sierra_program and casm_program fields in artifact");
-    return {
-      sierra: contractArtifact.sierra_program,
-      casm: contractArtifact.casm_program
-    };
+    sierraData = contractArtifact.sierra_program;
+    casmData = contractArtifact.casm_program;
   }
-  
   // Check for nested artifacts structure (as seen in the error log)
-  if (contractArtifact.artifacts) {
+  else if (contractArtifact.artifacts) {
     console.log("Found nested artifacts field, checking its structure");
     
     // Check if artifacts field has sierra and casm
     if (contractArtifact.artifacts.sierra && contractArtifact.artifacts.casm) {
       console.log("Found sierra and casm in nested artifacts field");
-      return {
-        sierra: contractArtifact.artifacts.sierra,
-        casm: contractArtifact.artifacts.casm
-      };
+      sierraData = contractArtifact.artifacts.sierra;
+      casmData = contractArtifact.artifacts.casm;
     }
-    
     // Check if artifacts field has sierra_program and casm_program
-    if (contractArtifact.artifacts.sierra_program && contractArtifact.artifacts.casm_program) {
+    else if (contractArtifact.artifacts.sierra_program && contractArtifact.artifacts.casm_program) {
       console.log("Found sierra_program and casm_program in nested artifacts field");
-      return {
-        sierra: contractArtifact.artifacts.sierra_program,
-        casm: contractArtifact.artifacts.casm_program
-      };
+      sierraData = contractArtifact.artifacts.sierra_program;
+      casmData = contractArtifact.artifacts.casm_program;
     }
-    
     // Check if artifacts is an array and contains sierra and casm objects
-    if (Array.isArray(contractArtifact.artifacts)) {
+    else if (Array.isArray(contractArtifact.artifacts)) {
       console.log("Artifacts field is an array, searching for sierra and casm objects");
       
       const sierraArtifact = contractArtifact.artifacts.find((a: any) => a.type === 'sierra' || a.name === 'sierra');
@@ -617,45 +640,90 @@ function extractSierraAndCasm(contractArtifact: any): { sierra: any, casm: any }
       
       if (sierraArtifact && casmArtifact) {
         console.log("Found sierra and casm objects in artifacts array");
-        return {
-          sierra: sierraArtifact.content || sierraArtifact.value || sierraArtifact.data,
-          casm: casmArtifact.content || casmArtifact.value || casmArtifact.data
-        };
+        sierraData = sierraArtifact.content || sierraArtifact.value || sierraArtifact.data;
+        casmData = casmArtifact.content || casmArtifact.value || casmArtifact.data;
       }
     }
   }
   
   // Check for compiled_contract_class and contract_class files
-  if (contractArtifact.contract_name) {
-    console.log("Checking for separate compiled_contract_class and contract_class files");
-    
-    try {
-      const contractName = contractArtifact.contract_name;
-      const targetDir = path.resolve(__dirname, "../target/dev");
+  if (!sierraData || !casmData) {
+    if (contractArtifact.contract_name) {
+      console.log("Checking for separate compiled_contract_class and contract_class files");
       
-      // Look for compiled_contract_class.json (CASM)
-      const casmFilePath = path.join(targetDir, `${contractName}.compiled_contract_class.json`);
-      // Look for contract_class.json (Sierra)
-      const sierraFilePath = path.join(targetDir, `${contractName}.contract_class.json`);
-      
-      if (fs.existsSync(casmFilePath) && fs.existsSync(sierraFilePath)) {
-        console.log(`Found separate files for ${contractName}`);
+      try {
+        const contractName = contractArtifact.contract_name;
+        const targetDir = path.resolve(__dirname, "../target/dev");
         
-        const sierraContent = JSON.parse(fs.readFileSync(sierraFilePath, 'utf8'));
-        const casmContent = JSON.parse(fs.readFileSync(casmFilePath, 'utf8'));
+        // Look for compiled_contract_class.json (CASM)
+        const casmFilePath = path.join(targetDir, `${contractName}.compiled_contract_class.json`);
+        // Look for contract_class.json (Sierra)
+        const sierraFilePath = path.join(targetDir, `${contractName}.contract_class.json`);
         
-        return {
-          sierra: sierraContent,
-          casm: casmContent
-        };
+        if (fs.existsSync(casmFilePath) && fs.existsSync(sierraFilePath)) {
+          console.log(`Found separate files for ${contractName}`);
+          
+          const sierraContent = JSON.parse(fs.readFileSync(sierraFilePath, 'utf8'));
+          const casmContent = JSON.parse(fs.readFileSync(casmFilePath, 'utf8'));
+          
+          sierraData = sierraContent;
+          casmData = casmContent;
+        }
+      } catch (error) {
+        console.error("Error trying to load separate contract files:", error);
       }
-    } catch (error) {
-      console.error("Error trying to load separate contract files:", error);
     }
   }
   
-  // If we get here, we couldn't find the sierra and casm artifacts
-  console.error("Could not find Sierra or CASM artifacts in the contract structure");
+  // If we found both sierra and casm data, ensure they're properly parsed
+  if (sierraData && casmData) {
+    try {
+      // Save raw data for debugging
+      const sierraDebugPath = path.resolve(TEMP_DEBUG_DIR, `sierra_raw_data.json`);
+      const casmDebugPath = path.resolve(TEMP_DEBUG_DIR, `casm_raw_data.json`);
+      
+      safeWriteFileSync(sierraDebugPath, JSON.stringify(sierraData, null, 2));
+      safeWriteFileSync(casmDebugPath, JSON.stringify(casmData, null, 2));
+      
+      console.log(`Saved raw sierra and casm data for debugging`);
+      
+      // Parse or load the data if needed
+      const parsedSierra = loadOrParseJson(sierraData);
+      const parsedCasm = loadOrParseJson(casmData);
+      
+      // Save parsed data for debugging
+      const sierraParsedDebugPath = path.resolve(TEMP_DEBUG_DIR, `sierra_parsed_data.json`);
+      const casmParsedDebugPath = path.resolve(TEMP_DEBUG_DIR, `casm_parsed_data.json`);
+      
+      safeWriteFileSync(sierraParsedDebugPath, JSON.stringify(parsedSierra, null, 2));
+      safeWriteFileSync(casmParsedDebugPath, JSON.stringify(parsedCasm, null, 2));
+      
+      console.log(`Saved parsed sierra and casm data for debugging`);
+      
+      return {
+        sierra: parsedSierra,
+        casm: parsedCasm
+      };
+    } catch (error) {
+      console.error("Error parsing sierra or casm data:", error);
+      
+      // Save error information
+      const errorInfo = {
+        error: String(error),
+        sierraType: typeof sierraData,
+        casmType: typeof casmData,
+        sierraPreview: typeof sierraData === 'string' ? sierraData.substring(0, 100) : null,
+        casmPreview: typeof casmData === 'string' ? casmData.substring(0, 100) : null
+      };
+      
+      const errorPath = path.resolve(TEMP_DEBUG_DIR, `parsing_error.json`);
+      safeWriteFileSync(errorPath, JSON.stringify(errorInfo, null, 2));
+      console.log(`Error details saved to ${errorPath}`);
+    }
+  }
+  
+  // If we get here, we couldn't find or parse the sierra and casm artifacts
+  console.error("Could not find or parse Sierra or CASM artifacts in the contract structure");
   console.error(`Contract artifact keys: ${Object.keys(contractArtifact).join(', ')}`);
   
   return null;
