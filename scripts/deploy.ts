@@ -33,8 +33,25 @@ interface DeploymentResult {
   transactionHash: string;
 }
 
+// Interface for file system info
+interface FileSystemInfo {
+  currentDirectory: string;
+  files: Record<string, string[] | string>;
+}
+
+// Interface for diagnostic data
+interface DiagnosticData {
+  timestamp: string;
+  error: string;
+  details: unknown;
+  contractType?: string;
+  availableContracts?: string[];
+  fileSystem: FileSystemInfo;
+  environment: Record<string, string | undefined>;
+}
+
 // Helper function to write file safely
-function safeWriteFileSync(filePath: string, content: string) {
+function safeWriteFileSync(filePath: string, content: string): boolean {
   try {
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
@@ -72,7 +89,12 @@ async function main() {
     console.log(`Connected to Starknet node. Chain ID: ${chainId}`);
   } catch (error) {
     console.error("Failed to connect to Starknet node:", error);
-    saveDeploymentDiagnostics({ error: "Failed to connect to Starknet node", details: error });
+    saveDeploymentDiagnostics({ 
+      error: "Failed to connect to Starknet node", 
+      details: error,
+      contractType: undefined,
+      availableContracts: undefined
+    });
     process.exit(1);
   }
   
@@ -87,7 +109,12 @@ async function main() {
     account = new Account(provider, address, private_key);
   } catch (error) {
     console.error("Failed to get Devnet account:", error);
-    saveDeploymentDiagnostics({ error: "Failed to get Devnet account", details: error });
+    saveDeploymentDiagnostics({ 
+      error: "Failed to get Devnet account", 
+      details: error,
+      contractType: undefined,
+      availableContracts: undefined
+    });
     process.exit(1);
   }
   
@@ -97,7 +124,12 @@ async function main() {
     artifacts = await findStarknetArtifacts();
   } catch (error) {
     console.error("Failed to find or parse artifacts:", error);
-    saveDeploymentDiagnostics({ error: "Failed to find or parse artifacts", details: error });
+    saveDeploymentDiagnostics({ 
+      error: "Failed to find or parse artifacts", 
+      details: error,
+      contractType: undefined,
+      availableContracts: undefined
+    });
     process.exit(1);
   }
   
@@ -210,6 +242,8 @@ async function main() {
     console.error("No contracts were deployed successfully");
     saveDeploymentDiagnostics({ 
       error: "No contracts were deployed successfully",
+      details: "All contract deployments failed",
+      contractType: undefined,
       availableContracts: artifacts?.contracts ? Object.keys(artifacts.contracts) : []
     });
     process.exit(1);
@@ -219,11 +253,16 @@ async function main() {
 }
 
 // Helper function to save deployment diagnostics
-function saveDeploymentDiagnostics(data: any) {
+function saveDeploymentDiagnostics(data: {
+  error: string;
+  details: unknown;
+  contractType?: string;
+  availableContracts?: string[];
+}): void {
   const diagnosticsPath = path.join(TEMP_DEBUG_DIR, `deployment_diagnostics_${Date.now()}.json`);
   
   // Add file system information
-  const fileSystemInfo = {
+  const fileSystemInfo: FileSystemInfo = {
     currentDirectory: process.cwd(),
     files: {}
   };
@@ -242,7 +281,7 @@ function saveDeploymentDiagnostics(data: any) {
       fileSystemInfo.files["target"] = "Directory does not exist";
     }
   } catch (error) {
-    fileSystemInfo.files["target_error"] = error;
+    fileSystemInfo.files["target_error"] = String(error);
   }
   
   // Add environment variables (excluding sensitive data)
@@ -253,7 +292,7 @@ function saveDeploymentDiagnostics(data: any) {
   };
   
   // Combine all diagnostic data
-  const diagnosticData = {
+  const diagnosticData: DiagnosticData = {
     timestamp: new Date().toISOString(),
     error: data.error,
     details: data.details,
@@ -304,7 +343,7 @@ async function getDevnetAccount(provider: RpcProvider): Promise<{ address: strin
 }
 
 // Helper function to recursively list directory contents
-function listDirectoryContents(dir: string, indent = '') {
+function listDirectoryContents(dir: string, indent = ''): void {
   try {
     if (!fs.existsSync(dir)) {
       console.error(`Directory does not exist: ${dir}`);
@@ -328,7 +367,7 @@ function listDirectoryContents(dir: string, indent = '') {
 }
 
 // Helper function to find and parse the starknet_artifacts.json file
-function findStarknetArtifacts() {
+function findStarknetArtifacts(): any {
   // List of potential directories to check
   const potentialDirs = [
     path.resolve(__dirname, "../target/dev"),
@@ -418,12 +457,13 @@ function findStarknetArtifacts() {
   console.log("Attempting to build contracts as fallback...");
   try {
     // Check if Scarb is available
-    const scarbVersion = require('child_process').execSync('scarb --version', { encoding: 'utf8' });
+    const { execSync } = require('child_process');
+    const scarbVersion = execSync('scarb --version', { encoding: 'utf8' });
     console.log(`Found Scarb: ${scarbVersion.trim()}`);
     
     // Try to build
     console.log("Running 'scarb build'...");
-    const buildOutput = require('child_process').execSync('scarb build', { 
+    const buildOutput = execSync('scarb build', { 
       encoding: 'utf8',
       cwd: path.resolve(__dirname, "..")
     });
@@ -533,8 +573,8 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
     safeWriteFileSync(debugPath, JSON.stringify(contractArtifact, null, 2));
     
     // Extract the Sierra and CASM artifacts
-    const compiledContractSierra = contractArtifact.sierra;
-    const compiledContractCasm = contractArtifact.casm;
+    let compiledContractSierra = contractArtifact.sierra;
+    let compiledContractCasm = contractArtifact.casm;
     
     if (!compiledContractSierra || !compiledContractCasm) {
       console.error(`Missing Sierra or CASM artifacts for contract "${contractType}"`);
@@ -606,8 +646,8 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
     // Save detailed error information
     const errorInfo = {
       contractType,
-      error: error.toString(),
-      stack: error.stack,
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString()
     };
     
@@ -630,8 +670,8 @@ main()
     
     // Save final error information
     const errorInfo = {
-      error: error.toString(),
-      stack: error.stack,
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString()
     };
     
