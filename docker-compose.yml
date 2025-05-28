@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile.deployer
     volumes:
       - ./contract-addresses:/app/contract-addresses
-      - ./target:/app/target
+      # Removed the target volume mount that was causing issues
     environment:
       - STARKNET_NETWORK=devnet
       - STARKNET_RPC_URL=http://starknet-devnet:5050
@@ -54,4 +54,4 @@ services:
     entrypoint: ["/bin/bash", "-c", "source /app/load-contract-addresses.sh && exec /entrypoint.sh frontend"]
 volumes:
   starknet-devnet-data:
-  contract-addresses:ses:
+  contract-addresses:
