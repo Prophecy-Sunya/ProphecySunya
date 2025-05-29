@@ -1,15 +1,15 @@
 "use client";
 
-import { useStoreWallet } from "@/stores/wallet-store";
 import { timeUntilExpiration } from "@/utils/helpers";
 import {
+  Button,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
-  Button,
+  CardHeader,
   Chip,
 } from "@heroui/react";
+import { useAccount } from "@starknet-react/core";
 
 interface PredictionCardProps {
   id: string;
@@ -27,7 +27,7 @@ const PredictionCard = ({
   expirationTime,
   verificationStatus,
 }: PredictionCardProps) => {
-  const { address, isConnected } = useStoreWallet((state) => state);
+  const { address, isConnected } = useAccount();
   console.log("wallet info:", isConnected, address);
   return (
     <Card

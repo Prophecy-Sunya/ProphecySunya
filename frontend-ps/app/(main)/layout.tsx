@@ -1,7 +1,11 @@
-export default function MainLayout({
+"use client";
+
+import { WalletErrorBoundary } from "@/components/main-layout-wrapper";
+
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <WalletErrorBoundary>{children}</WalletErrorBoundary>;
 }

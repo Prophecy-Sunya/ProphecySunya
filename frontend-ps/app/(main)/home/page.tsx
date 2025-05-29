@@ -12,7 +12,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
+import { Card, CardBody, CardFooter } from "@heroui/card";
 import { Chip } from "@heroui/chip";
 import { useState } from "react";
 
@@ -25,9 +25,9 @@ export default function HomePage() {
       : markets.filter((market) => market.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-900 to-background-800  ">
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="min-h-screen bg-gradient-to-b from-background/80 via-background/50 to-background/20 ">
+      <main className="container mx-auto py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 first-letter:">
           <div className="lg:col-span-2">
             <div className="mb-6">
               <h1 className="text-2xl font-bold mb-4">Featured Markets</h1>
@@ -43,7 +43,7 @@ export default function HomePage() {
             <MarketGrid markets={filteredMarkets} />
           </div>
 
-          <div className="w-80 rounded-lg p-6 space-y-6  bg-default/5 backdrop-blur-sm">
+          <div className=" rounded-lg  space-y-6  bg-default/5 backdrop-blur-sm flex-col ">
             {/* Hot Predictions */}
             <Card className="bg-default/5 backdrop-blur-md border border-default/50">
               <CardBody className="p-4">
@@ -96,18 +96,19 @@ export default function HomePage() {
                   ))}
                 </div>
               </CardBody>
+              <CardFooter>
+                {/* Trade All Markets */}
+                <Button
+                  className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 font-semibold py-3 hover:from-pink-600 hover:to-yellow-600"
+                  endContent={<ArrowRightIcon className="w-5 h-5" />}
+                >
+                  📈 Trade All Markets
+                </Button>
+              </CardFooter>
             </Card>
 
-            {/* Trade All Markets */}
-            <Button
-              className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 font-semibold py-3 hover:from-pink-600 hover:to-yellow-600"
-              endContent={<ArrowRightIcon className="w-5 h-5" />}
-            >
-              📈 Trade All Markets
-            </Button>
-
             {/* Live Activity */}
-            <Card className="bg-default/5 backdrop-blur-md border border-default-400/20">
+            <Card className="bg-default/5 backdrop-blur-md border border-default/50">
               <CardBody className="p-4">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex items-center justify-between  w-full">

@@ -28,7 +28,16 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   return (
     <StarknetProvider>
       <HeroUIProvider navigate={router.push}>
-        <ToastProvider />
+        <ToastProvider
+          toastProps={{
+            timeout: 1000,
+            hideIcon: true,
+            classNames: {
+              closeButton:
+                "opacity-100 absolute right-4 top-1/2 -translate-y-1/2",
+            },
+          }}
+        />
         <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
       </HeroUIProvider>
     </StarknetProvider>

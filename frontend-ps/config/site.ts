@@ -4,6 +4,8 @@ export const siteConfig = {
   name: "ProphecySunya",
   description: "Decentralized Prediction Markets on Starknet",
   navItems: [
+    { label: "Home", href: "/home" },
+    { label: "Markets", href: "/markets" },
     {
       label: "Predictions",
       href: "/predictions",

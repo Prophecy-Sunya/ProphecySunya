@@ -7,7 +7,6 @@ import { Providers } from "./providers";
 import { MainLayoutWrapper } from "@/components/main-layout-wrapper";
 import { fontSans } from "@/config/fonts";
 import { siteConfig } from "@/config/site";
-import Hydration from "@/store-providers/hydration";
 
 export const metadata: Metadata = {
   title: {
@@ -52,8 +51,6 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          {/* Hydration component for Zustand stores*/}
-          <Hydration />
           {/*
             The ClientLayoutWrapper will now handle the conditional rendering
             of the Navbar, main content, and Footer based on wallet connection.

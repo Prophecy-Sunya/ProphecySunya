@@ -20,6 +20,11 @@ export function formatCurrency(amount: string | number): string {
   }).format(num);
 }
 
+export const formatWalletCurrency = (currency: number) => {
+  let amount = currency / 1e18;
+  return amount || 0;
+};
+
 export function getTimeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
 
