@@ -810,12 +810,11 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
         // Contract not declared, declare it
         console.log(`Declaring ${contractType} contract...`);
         
-        // Set explicit transaction version to 1 for compatibility with older devnets
+        // Use the standard declare method without explicit version
+        // The library will automatically select the appropriate version based on the contract type
         declareResponse = await account.declare({
           contract: compiledContractSierra,
-          casm: compiledContractCasm,
-          // Explicitly set version to 1 for compatibility with older devnets
-          transactionVersion: 1
+          casm: compiledContractCasm
         });
         
         // Wait for transaction to be accepted
@@ -824,27 +823,7 @@ async function deployContract(account: Account, provider: RpcProvider, contractT
       }
     } catch (error) {
       console.error(`Error declaring contract ${contractType}:`, error);
-      
-      // Try with version 0 if version 1 fails
-      if (String(error).includes("Invalid version")) {
-        console.log("Trying with transaction version 0...");
-        try {
-          declareResponse = await account.declare({
-            contract: compiledContractSierra,
-            casm: compiledContractCasm,
-            transactionVersion: 0
-          });
-          
-          // Wait for transaction to be accepted
-          await provider.waitForTransaction(declareResponse.transaction_hash);
-          console.log(`Contract ${contractType} declared with transaction hash: ${declareResponse.transaction_hash} (using version 0)`);
-        } catch (fallbackError) {
-          console.error(`Error declaring contract ${contractType} with version 0:`, fallbackError);
-          throw fallbackError;
-        }
-      } else {
-        throw error;
-      }
+      throw error;
     }
     
     // Prepare constructor calldata (empty for now)
