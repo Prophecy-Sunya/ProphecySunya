@@ -30,14 +30,14 @@ const clearWalletConnectionCookie = () => {
   }
 };
 
-// Single Loading component
-const LoadingScreen = ({ message = "Loading..." }: { message?: string }) => (
+//  Loading component
+const LoadingScreen = () => (
   <div className="relative flex flex-col min-h-screen z-10">
     <Navbar />
     <main className="mx-auto max-w-7xl pt-16 flex-grow flex items-center justify-center">
       <div className="text-center">
         <Spinner />
-        <p className="text-muted-foreground text-lg">{message}</p>
+        <p className="text-muted-foreground text-lg">Loading...</p>
       </div>
     </main>
     <Footer />
