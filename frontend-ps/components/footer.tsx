@@ -1,7 +1,7 @@
-import { siteConfig } from '@/config/site';
-import NextLink from 'next/link';
-import clsx from 'clsx';
-import { link as linkStyles } from '@heroui/theme';
+import { siteConfig } from "@/config/site";
+import NextLink from "next/link";
+import clsx from "clsx";
+import { link as linkStyles } from "@heroui/theme";
 
 export const Footer = () => {
   return (
@@ -10,11 +10,12 @@ export const Footer = () => {
         {siteConfig.footerNavItems.map((item) => (
           <NextLink
             className={clsx(
-              linkStyles({ color: 'foreground' }),
-              'data-[active=true]:text-primary data-[active=true]:font-medium'
+              linkStyles({ color: "foreground" }),
+              "data-[active=true]:text-primary data-[active=true]:font-medium",
             )}
             color="foreground"
             href={item.href}
+            key={item.href}
           >
             {item.label}
           </NextLink>
