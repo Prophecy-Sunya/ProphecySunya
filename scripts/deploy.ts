@@ -561,6 +561,30 @@ function findContractKey(contractType: string, artifacts: any): string | undefin
   return undefined;
 }
 
+// Helper function to resolve a filename to a full path in the target directory
+function resolveFilenameToPath(filename: string): string | null {
+  // List of potential directories to check
+  const potentialDirs = [
+    path.resolve(__dirname, "../target/dev"),
+    path.resolve(__dirname, "../target/release"),
+    path.resolve(__dirname, "../target")
+  ];
+  
+  // Check each directory for the file
+  for (const dir of potentialDirs) {
+    if (fs.existsSync(dir)) {
+      const filePath = path.join(dir, filename);
+      if (fs.existsSync(filePath)) {
+        console.log(`Resolved filename "${filename}" to path: ${filePath}`);
+        return filePath;
+      }
+    }
+  }
+  
+  console.error(`Could not resolve filename "${filename}" to a valid path`);
+  return null;
+}
+
 // Helper function to load JSON from a file or parse a JSON string
 function loadOrParseJson(input: any): any {
   // If input is already an object, return it
@@ -584,6 +608,18 @@ function loadOrParseJson(input: any): any {
           throw new Error(`Failed to load JSON from file: ${input}`);
         }
       } else {
+        // Check if it's a filename that needs to be resolved to a path
+        const resolvedPath = resolveFilenameToPath(input);
+        if (resolvedPath) {
+          try {
+            const fileContent = fs.readFileSync(resolvedPath, 'utf8');
+            return JSON.parse(fileContent);
+          } catch (fileError) {
+            console.error(`Error loading JSON from resolved file ${resolvedPath}:`, fileError);
+            throw new Error(`Failed to load JSON from resolved file: ${resolvedPath}`);
+          }
+        }
+        
         console.error(`Error parsing JSON string:`, e);
         throw new Error(`Invalid JSON format: ${input.substring(0, 50)}...`);
       }
@@ -653,15 +689,20 @@ function extractSierraAndCasm(contractArtifact: any): { sierra: any, casm: any }
       
       try {
         const contractName = contractArtifact.contract_name;
-        const targetDir = path.resolve(__dirname, "../target/dev");
         
         // Look for compiled_contract_class.json (CASM)
-        const casmFilePath = path.join(targetDir, `${contractName}.compiled_contract_class.json`);
+        const casmFilename = `${contractName}.compiled_contract_class.json`;
         // Look for contract_class.json (Sierra)
-        const sierraFilePath = path.join(targetDir, `${contractName}.contract_class.json`);
+        const sierraFilename = `${contractName}.contract_class.json`;
         
-        if (fs.existsSync(casmFilePath) && fs.existsSync(sierraFilePath)) {
-          console.log(`Found separate files for ${contractName}`);
+        // Resolve filenames to full paths
+        const casmFilePath = resolveFilenameToPath(casmFilename);
+        const sierraFilePath = resolveFilenameToPath(sierraFilename);
+        
+        if (casmFilePath && sierraFilePath && fs.existsSync(casmFilePath) && fs.existsSync(sierraFilePath)) {
+          console.log(`Found separate files for ${contractName}:`);
+          console.log(`Sierra: ${sierraFilePath}`);
+          console.log(`CASM: ${casmFilePath}`);
           
           const sierraContent = JSON.parse(fs.readFileSync(sierraFilePath, 'utf8'));
           const casmContent = JSON.parse(fs.readFileSync(casmFilePath, 'utf8'));
