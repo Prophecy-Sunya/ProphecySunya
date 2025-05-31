@@ -1,5 +1,5 @@
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 import { useEffect, useState } from "react";
 
 type Props = {

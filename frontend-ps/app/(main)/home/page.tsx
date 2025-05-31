@@ -11,9 +11,7 @@ import {
   ClockIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardFooter } from "@heroui/card";
-import { Chip } from "@heroui/chip";
+import { Button, Card, CardBody, CardFooter, Chip } from "@heroui/react";
 import { useState } from "react";
 
 export default function HomePage() {

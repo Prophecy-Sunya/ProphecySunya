@@ -1,6 +1,6 @@
 "use client";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 import { useDisclosure } from "@heroui/react";
 import { CreatePredictionModal } from "./create-prediction-modal";
 

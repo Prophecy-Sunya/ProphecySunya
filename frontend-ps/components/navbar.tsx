@@ -1,5 +1,5 @@
 "use client";
-import { Link } from "@heroui/link";
+import { Link } from "@heroui/react";
 import {
   Navbar as HeroUINavbar,
   NavbarBrand,

@@ -1,7 +1,7 @@
 import { siteConfig } from "@/config/site";
 import NextLink from "next/link";
 import clsx from "clsx";
-import { link as linkStyles } from "@heroui/theme";
+import { link as linkStyles } from "@heroui/react";
 
 export const Footer = () => {
   return (

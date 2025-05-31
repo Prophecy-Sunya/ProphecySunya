@@ -10,7 +10,7 @@ import {
   ShieldCheckIcon,
   WalletIcon,
 } from "@heroicons/react/24/outline";
-import { Chip } from "@heroui/chip";
+import { Chip } from "@heroui/react";
 import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 
 // import { Container } from "@/components/ui/container";

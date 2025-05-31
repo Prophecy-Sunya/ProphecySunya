@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRightIcon,
   ChartBarIcon,
@@ -7,8 +9,8 @@ import {
   PresentationChartLineIcon,
   WalletIcon,
 } from "@heroicons/react/24/outline";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Chip } from "@heroui/chip";
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import { Chip } from "@heroui/react";
 
 export function HowItWorks() {
   return (

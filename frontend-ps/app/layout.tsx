@@ -7,6 +7,8 @@ import { Providers } from "./providers";
 import { MainLayoutWrapper } from "@/components/main-layout-wrapper";
 import { fontSans } from "@/config/fonts";
 import { siteConfig } from "@/config/site";
+import { Suspense } from "react";
+import SpinnerScreen from "@/components/spinner-screen";
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +59,9 @@ export default function RootLayout({
             It receives the 'children' (your page content, including the landing page)
             from this RootLayout.
           */}
-          <MainLayoutWrapper>{children}</MainLayoutWrapper>
+          <Suspense fallback={<SpinnerScreen />}>
+            <MainLayoutWrapper>{children}</MainLayoutWrapper>
+          </Suspense>
         </Providers>
       </body>
     </html>

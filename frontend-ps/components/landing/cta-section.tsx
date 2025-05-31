@@ -1,5 +1,6 @@
+"use client";
 import { ArrowRightIcon, BoltIcon } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 
 export function CtaSection() {
   return (

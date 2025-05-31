@@ -1,12 +1,15 @@
-// --- Client-side code (MainLayoutWrapper.tsx) ---
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import { useEffect, useState, useCallback } from "react";
+
 import { Navbar } from "./navbar";
 import { Footer } from "./footer";
+
 import { useAccount } from "@starknet-react/core";
 import { Spinner } from "@heroui/react";
+import SpinnerScreen from "./spinner-screen";
 
 // Route configuration - keep in sync with middleware
 const ROUTES = {
@@ -31,18 +34,14 @@ const clearWalletConnectionCookie = () => {
 };
 
 //  Loading component
-const LoadingScreen = () => (
-  <div className="relative flex flex-col min-h-screen z-10">
-    <Navbar />
-    <main className="mx-auto max-w-7xl pt-16 flex-grow flex items-center justify-center">
-      <div className="text-center">
-        <Spinner />
-        <p className="text-muted-foreground text-lg">Loading...</p>
-      </div>
-    </main>
-    <Footer />
-  </div>
-);
+// const LoadingScreen = () => (
+//   <main className="mx-auto max-w-7xl pt-16 flex-grow flex items-center justify-center">
+//     <div className="text-center">
+//       <Spinner />
+//       <p className="text-muted-foreground text-lg">Loading...</p>
+//     </div>
+//   </main>
+// );
 
 export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   const { isConnected, address, isConnecting, isReconnecting } = useAccount();
@@ -168,7 +167,7 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   ]);
 
   if (authState === "checking" || authState === "initial") {
-    return <LoadingScreen />;
+    return <SpinnerScreen />;
   }
 
   return (

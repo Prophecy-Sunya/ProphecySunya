@@ -4,7 +4,7 @@ import {
   ArrowPathIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 
 interface ErrorProps {
   error: Error & { digest?: string };

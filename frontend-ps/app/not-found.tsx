@@ -1,11 +1,12 @@
+"use client";
 import {
   ArrowLeftIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@heroui/button";
+import { Button } from "@heroui/react";
 import Link from "next/link";
 
-function NotFound() {
+export default function NotFound() {
   return (
     <main className="flex justify-center items-center flex-col gap-6">
       <h1 className="text-3xl font-semibold flex items-center text-warning">
@@ -21,5 +22,3 @@ function NotFound() {
     </main>
   );
 }
-
-export default NotFound;
