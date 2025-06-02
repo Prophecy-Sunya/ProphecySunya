@@ -12,9 +12,13 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Card, CardBody, CardFooter, Chip } from "@heroui/react";
+import { useAccount } from "@starknet-react/core";
 import { useState } from "react";
 
 export default function HomePage() {
+  const { isConnected } = useAccount();
+  if (!isConnected) return;
+
   const [activeCategory, setActiveCategory] = useState("all");
 
   const filteredMarkets =

@@ -1,14 +1,14 @@
 import "@/styles/globals.css";
-import clsx from "clsx";
 import { Metadata, Viewport } from "next";
+import clsx from "clsx";
 
 import { Providers } from "./providers";
 
-import { MainLayoutWrapper } from "@/components/main-layout-wrapper";
-import { fontSans } from "@/config/fonts";
 import { siteConfig } from "@/config/site";
-import { Suspense } from "react";
-import SpinnerScreen from "@/components/spinner-screen";
+import { fontSans } from "@/config/fonts";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
+// import Hydration from "@/store-providers/hydration";
 
 export const metadata: Metadata = {
   title: {
@@ -28,16 +28,6 @@ export const viewport: Viewport = {
   ],
 };
 
-/**
- * RootLayout Component
- *
- * This is the top-level Server Component for your Next.js application.
- * It sets up the basic HTML structure, global styles, theme providers,
- * and handles hydration for Zustand stores.
- *
- * It delegates the conditional rendering of the main application layout
- * versus the landing page to the `ClientLayoutWrapper` based on wallet connection status.
- */
 export default function RootLayout({
   children,
 }: {
@@ -48,20 +38,19 @@ export default function RootLayout({
       <head />
       <body
         className={clsx(
-          "min-h-screen font-sans relative antialiased",
+          "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          {/*
-            The ClientLayoutWrapper will now handle the conditional rendering
-            of the Navbar, main content, and Footer based on wallet connection.
-            It receives the 'children' (your page content, including the landing page)
-            from this RootLayout.
-          */}
-          <Suspense fallback={<SpinnerScreen />}>
-            <MainLayoutWrapper>{children}</MainLayoutWrapper>
-          </Suspense>
+          <div className="relative flex flex-col h-screen">
+            {/* <Hydration /> */}
+            <Navbar />
+            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>

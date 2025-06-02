@@ -33,16 +33,6 @@ const clearWalletConnectionCookie = () => {
   }
 };
 
-//  Loading component
-// const LoadingScreen = () => (
-//   <main className="mx-auto max-w-7xl pt-16 flex-grow flex items-center justify-center">
-//     <div className="text-center">
-//       <Spinner />
-//       <p className="text-muted-foreground text-lg">Loading...</p>
-//     </div>
-//   </main>
-// );
-
 export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   const { isConnected, address, isConnecting, isReconnecting } = useAccount();
   const router = useRouter();
@@ -179,56 +169,4 @@ export function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
       <Footer />
     </div>
   );
-}
-
-export function WalletErrorBoundary({
-  children,
-  fallback,
-}: {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}) {
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const handleError = (error: ErrorEvent) => {
-      if (
-        error.message?.includes("wallet") ||
-        error.message?.includes("starknet")
-      ) {
-        setHasError(true);
-        console.error("Wallet error caught:", error);
-      }
-    };
-
-    window.addEventListener("error", handleError);
-    return () => window.removeEventListener("error", handleError);
-  }, []);
-
-  if (hasError) {
-    return (
-      fallback || (
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold mb-4">
-            Wallet Connection Error
-          </h2>
-          <p className="text-muted-foreground mb-4">
-            There was an issue connecting to your wallet. Please try refreshing
-            the page.
-          </p>
-          <button
-            onClick={() => {
-              setHasError(false);
-              window.location.reload();
-            }}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-          >
-            Refresh Page
-          </button>
-        </div>
-      )
-    );
-  }
-
-  return <>{children}</>;
 }

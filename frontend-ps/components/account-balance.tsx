@@ -13,7 +13,6 @@ type Props = {
 
 function AccountBalance({ address }: Props) {
   const { chain } = useNetwork();
-  console.log({ chain });
   const { data: eth, isLoading: ethLoading } = useReadContract({
     address: ETH_SEPOLIA,
     abi: Erc20Abi,

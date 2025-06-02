@@ -27,8 +27,6 @@ const PredictionCard = ({
   expirationTime,
   verificationStatus,
 }: PredictionCardProps) => {
-  const { address, isConnected } = useAccount();
-  console.log("wallet info:", isConnected, address);
   return (
     <Card
       className="max-w-[400px]  bg-default/30 backdrop-blur-md  transition-all duration-300 hover:scale-105 hover:shadow-2xl group"

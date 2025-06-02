@@ -18,13 +18,15 @@ import { useEffect, useState } from "react";
 import AccountBalance from "./account-balance";
 import CopyButton from "./copy-button";
 import Image from "next/image";
+import { getStarknetPFPIfExists } from "@/utils/profile";
+import { BlockieAvatar } from "./blockie-avatar";
+import { truncateAddress } from "@/utils/helpers";
 
 const AddressBar = () => {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: starkProfile } = useStarkProfile({
     address,
-    useDefaultPfp: true,
   });
   const [imageError, setImageError] = useState(false);
 
@@ -46,29 +48,33 @@ const AddressBar = () => {
       <Popover placement="bottom-end" backdrop="blur" offset={10}>
         <PopoverTrigger>
           <Button
-            className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
+            className="bg-transparent hover:bg-default/50"
             radius="full"
-            variant="shadow"
+            variant="bordered"
           >
-            <span className="flex items-center">
+            <span className="flex items-center justify-center gap-2">
+              {/* Display profile picture if available, otherwise show blockie avatar */}
               {!imageError && starkProfile?.profilePicture && (
                 <div className="mr-2 size-8 relative">
-                  <Image
-                    src={starkProfile.profilePicture}
-                    className="object-cover"
-                    alt="starknet profile"
-                    fill
-                    onError={() => {
-                      setImageError(true);
-                    }}
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
-                  />
+                  {getStarknetPFPIfExists(starkProfile?.profilePicture) ? (
+                    <Image
+                      src={starkProfile?.profilePicture || ""}
+                      alt="Profile Picture"
+                      className="object-cover"
+                      onError={() => setImageError(true)}
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+                      fill
+                    />
+                  ) : (
+                    <BlockieAvatar address={address} ensImage={""} />
+                  )}
                 </div>
               )}
+
               {starkProfile?.name
                 ? starkProfile.name
-                : address?.slice(0, 6).concat("...").concat(address?.slice(-5))}
+                : truncateAddress(address)}
             </span>
           </Button>
         </PopoverTrigger>
@@ -79,18 +85,22 @@ const AddressBar = () => {
             </CardHeader>
             <CardBody>
               <div className="mx-auto">
-                <div className="mx-auto mb-4 h-20 w-20 overflow-clip rounded-full ">
+                <div className="mx-auto mb-4 size-20 overflow-clip rounded-full ">
                   {!imageError && starkProfile?.profilePicture && (
-                    <div className="mr-2 size-full relative">
-                      <Image
-                        src={starkProfile?.profilePicture}
-                        className="object-cover"
-                        fill
-                        alt="starknet profile"
-                        onError={() => setImageError(true)}
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
-                      />
+                    <div className="mr-2 relative">
+                      {getStarknetPFPIfExists(starkProfile?.profilePicture) ? (
+                        <Image
+                          src={starkProfile?.profilePicture || ""}
+                          alt="Profile Picture"
+                          className="object-cover"
+                          onError={() => setImageError(true)}
+                          placeholder="blur"
+                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+                          fill
+                        />
+                      ) : (
+                        <BlockieAvatar address={address} ensImage={""} />
+                      )}
                     </div>
                   )}
                 </div>
